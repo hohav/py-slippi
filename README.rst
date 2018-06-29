@@ -29,4 +29,4 @@ Usage
 API Docs
 ========
 
-See the :ref:`modindex` for detailed API docs, starting with :py:mod:`slippi.game`.
+See the `Module Index <https://py-slippi.readthedocs.io/en/latest/py-modindex.html>`_ for detailed API docs, starting with `slippi.game <https://py-slippi.readthedocs.io/en/latest/source/slippi.html#module-slippi.game>`_.

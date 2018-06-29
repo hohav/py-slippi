@@ -1,0 +1,17 @@
+summary {
+	margin-bottom: 1em;
+}
+
+/* useless since we don't do any meaningful inheritance */
+.py-bases {
+	display: none;
+}
+
+/* hide enum values by default */
+dt>.property.py-value {
+	display: none;
+}
+
+dt:hover>.property.py-value {
+	display: initial;
+}

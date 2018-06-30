@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'slippi'
+project = 'py-slippi'
 author = 'melkor'
 
 version = '1.0.0'

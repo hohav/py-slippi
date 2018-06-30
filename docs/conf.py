@@ -21,37 +21,36 @@ release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 
-# needs_sphinx = '1.0'
 extensions = ['sphinx.ext.napoleon']
 templates_path = ['_templates']
 source_suffix = ['.rst']
 master_doc = 'index'
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = 'alabaster'
-#html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-    #"github_user": "?",
-    #"github_repo": "?",
+    'description': 'Python parser for SSBM replay files',
     'fixed_sidebar': True,
+    'github_button': True,
+    'github_repo': "https://github.com/hohav/py-slippi",
+    'github_user': "hohav",
 }
 
 html_static_path = ['_static']
 
-# default: [localtoc.html, relations.html, sourcelink.html, searchbox.html]
-#html_sidebars = {
-#    "**": [
-#        "about.html",
-#        "localtoc.html",
-#        "relations.html",
-#        "searchbox.html",
-#    ]
-#}
+html_sidebars = {
+    "**": [
+        "about.html",
+        "localtoc.html",
+        "relations.html",
+        "searchbox.html",
+    ]
+}
 
 
 # -- Extension configuration -------------------------------------------------

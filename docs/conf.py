@@ -66,6 +66,8 @@ def skip(app, what, name, obj, skip, options):
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)
+    app.add_stylesheet('custom.css')
+    app.add_javascript('custom.js')
 
 # remove the useless " = None" after every ivar
 def iad_add_directive_header(self, sig):

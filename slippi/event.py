@@ -173,6 +173,9 @@ class End:
 class Frame:
     """A single frame of the game. Includes data for all characters."""
 
+    __slots__ = 'ports'
+    __repr__ = dict_repr
+
     def __init__(self):
         self.ports = [None, None, None, None]
         """tuple(optional(:py:class:`Port`)): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
@@ -180,31 +183,34 @@ class Frame:
     def _finalize(self):
         self.ports = tuple(self.ports)
 
-    __repr__ = dict_repr
-
 
     class Port:
         """Frame data for a given port. Can include two characters' frame data (ICs)."""
+
+        __slots__ = 'leader', 'follower'
+        __repr__ = dict_repr
 
         def __init__(self):
             self.leader = self.Data() #: :py:class:`Data`: Frame data for the controlled character
             self.follower = None #: optional(:py:class:`Data`): Frame data for the follower (Nana), if any
 
-        __repr__ = dict_repr
-
 
         class Data:
             """Frame data for a given character. Includes both pre-frame and post-frame data."""
+
+            __slots__ = 'pre', 'post'
+            __repr__ = dict_repr
 
             def __init__(self):
                 self.pre = None #: :py:class:`Pre`: Pre-frame update data
                 self.post = None #: :py:class:`Post`: Post-frame update data
 
-            __repr__ = dict_repr
-
 
             class Pre:
                 """Pre-frame update data, required to reconstruct a replay. Information is collected right before controller inputs are used to figure out the character's next action."""
+
+                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed'
+                __repr__ = dict_repr
 
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
@@ -217,11 +223,12 @@ class Frame:
                     self.buttons = Buttons(buttons_logical, buttons_physical) #: :py:class:`Buttons`: Button state
                     self.random_seed = random_seed #: :py:class:`int`: Random seed at this point
 
-                __repr__ = dict_repr
-
 
             class Post:
                 """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""
+
+                __slots__ = 'character', 'state', 'state_age', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count'
+                __repr__ = dict_repr
 
                 def __init__(self, stream):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
@@ -242,8 +249,6 @@ class Frame:
                     self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: optional(:py:class:`int`): Port of character that last hit this character
                     self.combo_count = combo_count #: :py:class:`int`: Combo count as defined by the game
 
-                __repr__ = dict_repr
-
 
     # This class is only used temporarily while parsing frame data.
     class Event:
@@ -259,6 +264,8 @@ class Frame:
 
 
 class Position:
+    __slots__ = 'x', 'y'
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -307,11 +314,12 @@ class Attack(IntEnum):
 
 
 class Triggers:
+    __slots__ = 'logical', 'physical'
+    __repr__ = dict_repr
+
     def __init__(self, logical, physical_x, physical_y):
         self.logical = logical #: :py:class:`float`: Processed analog trigger position
         self.physical = self.Physical(physical_x, physical_y) #: :py:class:`Physical`: physical analog trigger positions (useful for APM)
-
-    __repr__ = dict_repr
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -320,11 +328,12 @@ class Triggers:
 
 
     class Physical:
+        __slots__ = 'l', 'r'
+        __repr__ = dict_repr
+
         def __init__(self, l, r):
             self.l = l
             self.r = r
-
-        __repr__ = dict_repr
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):
@@ -334,6 +343,9 @@ class Triggers:
 
 
 class Buttons:
+    __slots__ = 'logical', 'physical'
+    __repr__ = dict_repr
+
     def __init__(self, logical, physical):
         self.logical = self.Logical(logical) #: :py:class:`Logical`: Processed button-state bitmask
         self.physical = self.Physical(physical) #: :py:class:`Physical`: Physical button-state bitmask
@@ -342,8 +354,6 @@ class Buttons:
         if not isinstance(other, Buttons):
             return NotImplemented
         return other.logical is self.logical and other.physical is self.physical
-
-    __repr__ = dict_repr
 
 
     class Logical(IntFlag):

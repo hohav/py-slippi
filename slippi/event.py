@@ -275,6 +275,9 @@ class Position:
             return NotImplemented
         return self.x == other.x and self.y == other.y
 
+    def __repr__(self):
+        return '(%.2f, %.2f)' % (self.x, self.y)
+
 
 class Direction(IntEnum):
     LEFT = -1

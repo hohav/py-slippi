@@ -1,6 +1,6 @@
 # These IDs (and other very useful info for this project) came from the SSBM Data Sheet: https://docs.google.com/spreadsheets/d/1JX2w-r2fuvWuNgGb6D3Cs4wHQKLFegZe2jhbBuIhCG8
 
-from enum import IntEnum
+from slippi.util import *
 
 
 class ActionState(IntEnum):
@@ -431,9 +431,6 @@ class CSSCharacter(IntEnum):
             return cls.ICE_CLIMBERS
         else:
             return cls[char.name]
-
-    def __repr__(self):
-        return '%s.%s' % (self.__class__.__name__, self.name)
 
 
 class InGameCharacter(IntEnum):

@@ -1,13 +1,12 @@
 import io, sys, ubjson
 from datetime import datetime
-from enum import Enum
 
 import slippi.event as evt
 from slippi.id import InGameCharacter
 from slippi.util import *
 
 
-class Game:
+class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
     def __init__(self, path):
@@ -118,11 +117,11 @@ class Game:
             pass
 
     def __repr__(self):
-        return '<%s: {metadata: %s, start: %s, end: %s, frames: [...]}>' % \
-            (self.__class__.__qualname__, self.metadata, self.start, self.end)
+        return '%s(metadata=%s, start=%s, end=%s, frames=[...])' % \
+            (self.__class__.__name__, self.metadata, self.start, self.end)
 
 
-    class Metadata:
+    class Metadata(Base):
         """Miscellaneous data relevant to the game but not directly provided by Melee."""
         def __init__(self, date, duration, platform, players):
             self.date = date #: :py:class:`datetime`: Game start date & time
@@ -147,15 +146,13 @@ class Game:
                 except KeyError: pass
             return cls(date=date, duration=duration, platform=platform, players=tuple(players))
 
-        __repr__ = dict_repr
-
         def __eq__(self, other):
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return self.date == other.date and self.duration == other.duration and self.platform == other.platform and self.players == other.players
 
 
-        class Player:
+        class Player(Base):
             def __init__(self, characters):
                 self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, :py:class:`int`): Character(s) used, with usage duration in frames (for Zelda/Sheik)
 
@@ -165,8 +162,6 @@ class Game:
                 for char_id, duration in json.items():
                     characters[InGameCharacter(int(char_id))] = duration - 123 # ignore 123 frames before timer starts
                 return cls(characters)
-
-            __repr__ = dict_repr
 
             def __eq__(self, other):
                 if not isinstance(other, self.__class__):

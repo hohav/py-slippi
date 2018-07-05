@@ -270,8 +270,8 @@ class Direction(IntEnum):
 class Attack(IntEnum):
     OTHER = 1
     JAB = 2
-    JAB2 = 3
-    JAB3 = 4
+    JAB_2 = 3
+    JAB_3 = 4
     DASH_ATTACK = 6
     FTILT = 7
     UTILT = 8

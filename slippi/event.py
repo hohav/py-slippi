@@ -5,8 +5,8 @@ from slippi.id import *
 class EventType(IntEnum):
     EVENT_PAYLOADS = 0x35
     GAME_START = 0x36
-    PRE_FRAME = 0x37
-    POST_FRAME = 0x38
+    FRAME_PRE = 0x37
+    FRAME_POST = 0x38
     GAME_END = 0x39
 
 

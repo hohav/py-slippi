@@ -54,10 +54,10 @@ class Game(Base):
         stream = io.BytesIO(payload)
         if event_type is evt.EventType.GAME_START:
             return evt.Start._parse(stream)
-        elif event_type is evt.EventType.PRE_FRAME:
+        elif event_type is evt.EventType.FRAME_PRE:
             return evt.Frame.Event(evt.Frame.Event.Id(stream),
                                    evt.Frame.Port.Data.Pre(stream))
-        elif event_type is evt.EventType.POST_FRAME:
+        elif event_type is evt.EventType.FRAME_POST:
             return evt.Frame.Event(evt.Frame.Event.Id(stream),
                                    evt.Frame.Port.Data.Post(stream))
         elif event_type is evt.EventType.GAME_END:

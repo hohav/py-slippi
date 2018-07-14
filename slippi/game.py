@@ -105,8 +105,10 @@ class Game(Base):
 
                     if isinstance(event.data, evt.Frame.Port.Data.Pre):
                         data.pre = event.data
-                    else:
+                    elif isinstance(event.data, evt.Frame.Port.Data.Post):
                         data.post = event.data
+                    else:
+                        raise Exception('unknown frame data type: %s' % event.data)
                 elif isinstance(event, evt.Start):
                     self.start = event
                 elif isinstance(event, evt.End):

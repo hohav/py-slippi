@@ -243,7 +243,6 @@ class Frame(Base):
         class Id(Base):
             def __init__(self, stream):
                 (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
-                pass
 
 
 class Position(Base):

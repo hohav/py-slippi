@@ -98,7 +98,8 @@ class Game(Base):
                         self.frames[event.id.frame].ports[event.id.port] = port
 
                     if event.id.is_follower:
-                        port.follower = evt.Frame.Port.Data()
+                        if port.follower is None:
+                            port.follower = evt.Frame.Port.Data()
                         data = port.follower
                     else:
                         data = port.leader

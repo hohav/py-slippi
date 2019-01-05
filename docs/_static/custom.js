@@ -19,7 +19,7 @@ $(document).ready(function() {
 			return this.textContent.startsWith('enum.');
 		}).each(function (index) {
 			// stick enum values inside a <details> tag so they can be collapsed
-			const dd = this.parentNode.parentNode.parentNode;
+			const dd = this.closest('dd');
 
 			const details = document.createElement('details');
 			const summary = document.createElement('summary');
@@ -27,7 +27,7 @@ $(document).ready(function() {
 			details.appendChild(summary);
 
 			for (const child of dd.childNodes) {
-				if (child.nodeName === 'DL') {
+				if (child.nodeName.toLowerCase() === 'dl') {
 					child.remove();
 					details.appendChild(child);
 				}

@@ -25,12 +25,12 @@ Usage
     >>> game.end
     End(method=Method.CONCLUSIVE)
     >>> game.frames[0]
-    Frame(ports=(Port(follower=None, leader=Data(post=Post(character=InGameCharacter.MARTH, combo_count=0, damage=0.00, direction=Direction.RIGHT, last_attack_landed=None, last_hit_by=None, position=(-31.94, 0.00), shield=59.66, state=ActionState.LANDING, state_age=7.00, stocks=4), pre=Pre(buttons=Buttons(logical=Logical.NONE, physical=Physical.NONE), cstick=(0.00, 0.00), direction=Direction.RIGHT, joystick=(0.00, 0.00), position=(-32.08, 0.00), random_seed=1373931959, state=ActionState.LANDING, triggers=Triggers(logical=0.00, physical=Physical(l=0.00, r=0.00))))), Port(follower=None, leader=Data(post=Post(character=InGameCharacter.FOX, combo_count=0, damage=0.00, direction=Direction.LEFT, last_attack_landed=None, last_hit_by=None, position=(9.96, 53.35), shield=60.00, state=ActionState.JUMP_F, state_age=19.00, stocks=4), pre=Pre(buttons=Buttons(logical=Logical.NONE, physical=Physical.NONE), cstick=(0.00, 0.00), direction=Direction.LEFT, joystick=(-0.99, 0.00), position=(10.78, 54.04), random_seed=1373931959, state=ActionState.JUMP_F, triggers=Triggers(logical=0.00, physical=Physical(l=0.00, r=0.00))))), None, None))
+    Frame(index=-123, ports=(Port(follower=None, leader=Data(post=Post(character=InGameCharacter.MARTH, combo_count=0, damage=0.00, direction=Direction.RIGHT, last_attack_landed=None, last_hit_by=None, position=(-31.94, 0.00), shield=59.66, state=ActionState.LANDING, state_age=7.00, stocks=4), pre=Pre(buttons=Buttons(logical=Logical.NONE, physical=Physical.NONE), cstick=(0.00, 0.00), direction=Direction.RIGHT, joystick=(0.00, 0.00), position=(-32.08, 0.00), random_seed=1373931959, state=ActionState.LANDING, triggers=Triggers(logical=0.00, physical=Physical(l=0.00, r=0.00))))), Port(follower=None, leader=Data(post=Post(character=InGameCharacter.FOX, combo_count=0, damage=0.00, direction=Direction.LEFT, last_attack_landed=None, last_hit_by=None, position=(9.96, 53.35), shield=60.00, state=ActionState.JUMP_F, state_age=19.00, stocks=4), pre=Pre(buttons=Buttons(logical=Logical.NONE, physical=Physical.NONE), cstick=(0.00, 0.00), direction=Direction.LEFT, joystick=(-0.99, 0.00), position=(10.78, 54.04), random_seed=1373931959, state=ActionState.JUMP_F, triggers=Triggers(logical=0.00, physical=Physical(l=0.00, r=0.00))))), None, None))
 
 
 **Iterating over frame data**::
 
-    for frame_index, frame in enumerate(game.frames):
+    for frame in game.frames:
         data = frame.ports[0].leader # see also: port.follower (ICs)
         print(data.post.state) # character's post-frame action state
 

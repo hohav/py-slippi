@@ -5,6 +5,9 @@ import slippi.event as evt
 from slippi.id import InGameCharacter
 from slippi.util import *
 
+# The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
+FIRST_FRAME_INDEX = -123
+
 
 class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
@@ -80,22 +83,21 @@ class Game(Base):
             while True:
                 event = self._parse_event(stream, payload_sizes)
                 if isinstance(event, evt.Frame.Event):
-                    if event.id.frame < 0:
-                        continue
+                    frame_index = event.id.frame - FIRST_FRAME_INDEX
 
-                    if not self._out_of_order and len(self.frames) != event.id.frame and len(self.frames) != event.id.frame + 1:
+                    if not self._out_of_order and len(self.frames) != frame_index and len(self.frames) != frame_index + 1:
                         self._out_of_order = True
                         print('out-of-order frame: %d' % event.id.frame, file=sys.stderr)
 
-                    while (len(self.frames) <= event.id.frame):
+                    while (len(self.frames) <= frame_index):
                         if self.frames:
                             self.frames[-1]._finalize()
-                        self.frames.append(evt.Frame())
+                        self.frames.append(evt.Frame(event.id.frame))
 
-                    port = self.frames[event.id.frame].ports[event.id.port]
+                    port = self.frames[frame_index].ports[event.id.port]
                     if not port:
                         port = evt.Frame.Port()
-                        self.frames[event.id.frame].ports[event.id.port] = port
+                        self.frames[frame_index].ports[event.id.port] = port
 
                     if event.id.is_follower:
                         if port.follower is None:

@@ -161,9 +161,10 @@ class End(Base):
 class Frame(Base):
     """A single frame of the game. Includes data for all characters."""
 
-    __slots__ = 'ports'
+    __slots__ = 'index', 'ports'
 
-    def __init__(self):
+    def __init__(self, index):
+        self.index = index
         self.ports = [None, None, None, None]
         """tuple(optional(:py:class:`Port`)): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
 

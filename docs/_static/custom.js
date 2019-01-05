@@ -16,8 +16,7 @@ $(document).ready(function() {
 		});
 	$("span[class*='pre']")
 		.filter(function (index) {
-			return
-				this.textContent === 'slippi.util.Enum' ||
+			return this.textContent === 'slippi.util.Enum' ||
 				this.textContent === 'slippi.util.IntEnum' ||
 				this.textContent === 'slippi.util.IntFlag';
 		}).each(function (index) {

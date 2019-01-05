@@ -64,11 +64,11 @@ class TestGame(unittest.TestCase):
                 '1': {'characters': {InGameCharacter.FOX: 5209}}}}))
         self.assertEqual(game.metadata, Game.Metadata(
             date=datetime.datetime(2018, 6, 22, 7, 52, 59, 0, datetime.timezone.utc),
-            duration=5086,
+            duration=5209,
             platform=Game.Metadata.Platform.DOLPHIN,
             players=(
-                Game.Metadata.Player({InGameCharacter.MARTH: 5086}),
-                Game.Metadata.Player({InGameCharacter.FOX: 5086}),
+                Game.Metadata.Player({InGameCharacter.MARTH: 5209}),
+                Game.Metadata.Player({InGameCharacter.FOX: 5209}),
                 None, None)))
 
         self.assertEqual(game.start, Start(
@@ -88,8 +88,8 @@ class TestGame(unittest.TestCase):
     def test_ics(self):
         game = self._game('ics')
         self.assertEqual(game.metadata.players[0].characters, {
-            InGameCharacter.NANA: 221,
-            InGameCharacter.POPO: 221})
+            InGameCharacter.NANA: 344,
+            InGameCharacter.POPO: 344})
         self.assertEqual(game.start.players[0].character, CSSCharacter.ICE_CLIMBERS)
         self.assertIsNotNone(game.frames[0].ports[0].follower)
 

@@ -141,7 +141,7 @@ class Game(Base):
                 d = d[:-1] + '+0000'
             date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S%z')
             try:
-                duration = 1 + json['lastFrame']
+                duration = 1 + json['lastFrame'] - FIRST_FRAME_INDEX
             except KeyError: duration = None
             platform = cls.Platform(json['playedOn'])
             players = [None, None, None, None]
@@ -165,7 +165,7 @@ class Game(Base):
             def _parse(cls, json):
                 characters = {}
                 for char_id, duration in json.items():
-                    characters[InGameCharacter(int(char_id))] = duration - 123 # ignore 123 frames before timer starts
+                    characters[InGameCharacter(int(char_id))] = duration
                 return cls(characters)
 
             def __eq__(self, other):

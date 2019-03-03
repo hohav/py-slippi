@@ -272,6 +272,7 @@ class Attack(IntEnum):
     JAB = 2
     JAB_2 = 3
     JAB_3 = 4
+    JAB_LOOP = 5
     DASH_ATTACK = 6
     FTILT = 7
     UTILT = 8

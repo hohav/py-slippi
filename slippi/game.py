@@ -139,7 +139,10 @@ class Game(Base):
             d = json['startAt']
             if d[-1] == 'Z':
                 d = d[:-1] + '+0000'
-            date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S.%f%z')
+            try:
+                date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S%z')
+            except ValueError:
+                date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S.%f%z')
             try:
                 duration = 1 + json['lastFrame'] - FIRST_FRAME_INDEX
             except KeyError: duration = None

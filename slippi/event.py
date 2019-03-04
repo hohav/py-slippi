@@ -55,8 +55,11 @@ class Start(Base):
             # added: 1.0.0.0
             for i in range(4):
                 (dash_back, shield_drop) = unpack('LL', stream)
+                dash_back = cls.Player.UCF.DashBack(dash_back)
+                shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
+
                 if players[i]:
-                    players[i].ucf = cls.Player.UCF(dash_back != 0, shield_drop != 0)
+                    players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
         except EofException: pass
 
         return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage)
@@ -126,14 +129,25 @@ class Start(Base):
 
 
         class UCF(Base):
-            def __init__(self, dash_back = False, shield_drop = False):
-                self.dash_back = bool(dash_back) #: :py:class:`bool`: True if UCF dashback was enabled
-                self.shield_drop = bool(shield_drop) #: :py:class:`bool`: True if UCF shield drop was enabled
+            def __init__(self, dash_back = None, shield_drop = None):
+                self.dash_back = dash_back or self.DashBack.OFF #: :py:class:`DashBack`: UCF dashback state
+                self.shield_drop = shield_drop or self.ShieldDrop.OFF #: :py:class:`ShieldDrop`: UCF shield drop state
 
             def __eq__(self, other):
                 if not isinstance(other, self.__class__):
                     return NotImplemented
                 return self.dash_back == other.dash_back and self.shield_drop == other.shield_drop
+
+
+            class DashBack(IntEnum):
+                OFF = 0
+                UCF = 1
+                ARDUINO = 2
+
+            class ShieldDrop(IntEnum):
+                OFF = 0
+                UCF = 1
+                ARDUINO = 2
 
 
 class End(Base):

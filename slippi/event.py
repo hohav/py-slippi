@@ -209,7 +209,7 @@ class Frame(Base):
             class Pre(Base):
                 """Pre-frame update data, required to reconstruct a replay. Information is collected right before controller inputs are used to figure out the character's next action."""
 
-                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed'
+                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x'
 
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
@@ -222,6 +222,10 @@ class Frame(Base):
                     self.buttons = Buttons(buttons_logical, buttons_physical) #: :py:class:`Buttons`: Button state
                     self.random_seed = random_seed #: :py:class:`int`: Random seed at this point
 
+                    try:
+                        # added: 1.2.0.0
+                        self.raw_analog_x = unpack('B', stream) #: :py:class:`int`: Raw x analog controller input (for UCF)
+                    except EofException: pass
 
             class Post(Base):
                 """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""

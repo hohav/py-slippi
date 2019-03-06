@@ -13,12 +13,13 @@ class EventType(IntEnum):
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
-    def __init__(self, is_teams, players, random_seed, slippi, stage):
+    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal):
         self.is_teams = is_teams #: :py:class:`bool`: True if this was a teams game
         self.players = players #: tuple(optional(:py:class:`Player`)): Players in this game by port (port 1 is at index 0; empty ports will contain None)
         self.random_seed = random_seed #: :py:class:`int`: Random seed before the game start
         self.slippi = slippi #: :py:class:`Slippi`: Information about the Slippi recorder that generated this replay
         self.stage = stage #: :py:class:`slippi.id.Stage`: Stage on which this game was played
+        self.is_pal = is_pal #: :py:class:`bool`: True if this was a PAL version of Melee
 
     @classmethod
     def _parse(cls, stream):
@@ -51,6 +52,7 @@ class Start(Base):
         stream.read(72)
         (random_seed,) = unpack('L', stream)
 
+        is_pal = False
         try:
             # added: 1.0.0.0
             for i in PORTS:
@@ -69,9 +71,12 @@ class Start(Base):
                         tag_bytes = tag_bytes[:null_pos]
                     except ValueError: pass
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
+
+            # added: 1.5.0.0
+            (is_pal,) = unpack('?', stream)
         except EofException: pass
 
-        return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage)
+        return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

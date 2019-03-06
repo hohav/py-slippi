@@ -219,7 +219,7 @@ class Frame(Base):
             class Pre(Base):
                 """Pre-frame update data, required to reconstruct a replay. Information is collected right before controller inputs are used to figure out the character's next action."""
 
-                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x'
+                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x', 'damage'
 
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
@@ -235,6 +235,8 @@ class Frame(Base):
                     try:
                         # added: 1.2.0.0
                         self.raw_analog_x = unpack('B', stream) #: :py:class:`int`: Raw x analog controller input (for UCF)
+                        # added: 1.4.0.0
+                        self.damage = unpack('f', stream) #: :py:class:`float`: Current damage percent
                     except EofException: pass
 
             class Post(Base):

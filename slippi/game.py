@@ -5,6 +5,7 @@ import slippi.event as evt
 from slippi.id import InGameCharacter
 from slippi.util import *
 
+
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
 FIRST_FRAME_INDEX = -123
 
@@ -148,7 +149,7 @@ class Game(Base):
             except KeyError: duration = None
             platform = cls.Platform(json['playedOn'])
             players = [None, None, None, None]
-            for i in range(4):
+            for i in PORTS:
                 try:
                     players[i] = cls.Player._parse(json['players'][str(i)]['characters'])
                 except KeyError: pass

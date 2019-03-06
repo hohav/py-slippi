@@ -33,7 +33,7 @@ class Start(Base):
 
         stream.read(80)
         players = []
-        for i in range(4):
+        for i in PORTS:
             (character, type, stocks, costume) = unpack('BBBB', stream)
             character = CSSCharacter(character)
 
@@ -53,11 +53,10 @@ class Start(Base):
 
         try:
             # added: 1.0.0.0
-            for i in range(4):
+            for i in PORTS:
                 (dash_back, shield_drop) = unpack('LL', stream)
                 dash_back = cls.Player.UCF.DashBack(dash_back)
                 shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
-
                 if players[i]:
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
         except EofException: pass

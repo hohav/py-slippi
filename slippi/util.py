@@ -1,6 +1,9 @@
 import inspect, struct, enum
 
 
+PORTS = range(4)
+
+
 def _attrs(obj):
     attrs = ((attr, obj.__getattribute__(attr)) for attr in dir(obj)
              if not attr.startswith('_'))

@@ -59,6 +59,16 @@ class Start(Base):
                 shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
                 if players[i]:
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
+
+            # added: 1.3.0.0
+            for i in PORTS:
+                tag_bytes = stream.read(16)
+                if players[i]:
+                    try:
+                        null_pos = tag_bytes.index(0)
+                        tag_bytes = tag_bytes[:null_pos]
+                    except ValueError: pass
+                    players[i].tag = tag_bytes.decode('shift-jis').rstrip()
         except EofException: pass
 
         return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage)
@@ -102,13 +112,14 @@ class Start(Base):
 
 
     class Player(Base):
-        def __init__(self, character, type, stocks, costume, team, ucf = None):
+        def __init__(self, character, type, stocks, costume, team, ucf = None, tag = ""):
             self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
             self.type = type #: :py:class:`Type`: Player type (human/cpu)
             self.stocks = stocks #: :py:class:`int`: Starting stock count
             self.costume = costume #: :py:class:`int`: Costume ID
             self.team = team #: optional(:py:class:`Team`): Team, if this was a teams game
             self.ucf = ucf or self.UCF() #: :py:class:`UCF`: UCF feature toggles
+            self.tag = tag #: :py:class:`str`: Name tag
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):

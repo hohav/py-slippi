@@ -1,5 +1,5 @@
-import io, sys, ubjson
-from datetime import datetime
+import io, re, sys, ubjson
+from datetime import datetime, timedelta, timezone
 
 import slippi.event as evt
 from slippi.id import InGameCharacter
@@ -138,12 +138,9 @@ class Game(Base):
         @classmethod
         def _parse(cls, json):
             d = json['startAt'].rstrip('\x00') # workaround for Nintendont/Slippi<1.5 bug
-            if d[-1] == 'Z':
-                d = d[:-1] + '+0000'
-            try:
-                date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S%z')
-            except ValueError:
-                date = datetime.strptime(d, '%Y-%m-%dT%H:%M:%S.%f%z')
+            # timezone & fractional seconds aren't always provided, so parse the date manually (strptime lacks support for optional components)
+            m = [int(g or '0') for g in re.search(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(?:Z|\+(\d{2})(\d{2}))?$', d).groups()]
+            date = datetime(*m[:7], timezone(timedelta(hours=m[7], minutes=m[8])))
             try:
                 duration = 1 + json['lastFrame'] - FIRST_FRAME_INDEX
             except KeyError: duration = None

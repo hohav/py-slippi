@@ -140,6 +140,10 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.JOYSTICK_LEFT, BPhys.NONE),
             Buttons(BLog.JOYSTICK_RIGHT, BPhys.NONE)])
 
+    def test_nintendont(self):
+        game = self._game('nintendont')
+        self.assertEqual(game.metadata.platform, Game.Metadata.Platform.NINTENDONT)
+
 
 if __name__ == '__main__':
     unittest.main()

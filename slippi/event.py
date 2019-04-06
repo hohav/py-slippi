@@ -334,6 +334,10 @@ class Attack(IntEnum):
     LEDGE_ATTACK_SLOW = 61
     LEDGE_ATTACK = 62
 
+    @classmethod
+    def _missing_(cls, _):
+      return cls.OTHER
+
 
 class Triggers(Base):
     __slots__ = 'logical', 'physical'

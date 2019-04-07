@@ -88,7 +88,7 @@ class Game(Base):
 
                     if not self._out_of_order and len(self.frames) != frame_index and len(self.frames) != frame_index + 1:
                         self._out_of_order = True
-                        print('out-of-order frame: %d' % event.id.frame, file=sys.stderr)
+                        warn('out-of-order frame: %d' % event.id.frame)
 
                     while (len(self.frames) <= frame_index):
                         if self.frames:

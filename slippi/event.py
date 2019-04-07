@@ -2,6 +2,21 @@ from slippi.util import *
 from slippi.id import *
 
 
+unknown_enum_values_seen = {}
+
+def try_enum(enum, val):
+    try:
+        return enum(val)
+    except ValueError:
+        name = enum.__name__
+        if not name in unknown_enum_values_seen:
+            unknown_enum_values_seen[name] = {}
+        if not val in unknown_enum_values_seen[name]:
+            unknown_enum_values_seen[name][val] = 1
+            warn('unknown %s: %s' % (name, val))
+        return val
+
+
 class EventType(IntEnum):
     EVENT_PAYLOADS = 0x35
     GAME_START = 0x36
@@ -228,7 +243,7 @@ class Frame(Base):
 
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
-                    self.state = ActionState(state) #: :py:class:`slippi.id.ActionState`: Character's action state (useful for stats)
+                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
                     self.joystick = Position(joystick_x, joystick_y) #: :py:class:`Position`: Processed analog joystick position
@@ -257,14 +272,14 @@ class Frame(Base):
                         (state_age,) = unpack('f', stream)
                     except EofException: pass
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
-                    self.state = ActionState(state) #: :py:class:`slippi.id.ActionState`: Character's action state (useful for stats)
+                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
                     self.state_age = state_age #: :py:class:`float`: Number of frames action state has been active. Can have a fractional component for certain actions
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
                     self.damage = damage #: :py:class:`float`: Current damage percent
                     self.shield = shield #: :py:class:`float`: Current size of shield
                     self.stocks = stocks #: :py:class:`int`: Number of stocks remaining
-                    self.last_attack_landed = Attack(last_attack_landed) if last_attack_landed else None #: optional(:py:class:`Attack`): Last attack that this character landed
+                    self.last_attack_landed = try_enum(Attack, last_attack_landed) if last_attack_landed else None #: optional(:py:class:`Attack` | int): Last attack that this character landed
                     self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: optional(:py:class:`int`): Port of character that last hit this character
                     self.combo_count = combo_count #: :py:class:`int`: Combo count as defined by the game
 

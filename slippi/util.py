@@ -1,4 +1,4 @@
-import inspect, struct, enum
+import enum, inspect, struct, sys, termcolor
 
 
 PORTS = range(4)
@@ -21,6 +21,10 @@ def unpack(fmt, stream):
     if not bytes:
         raise EofException()
     return struct.unpack(fmt, bytes)
+
+
+def warn(msg):
+    print(termcolor.colored('WARNING', 'yellow') + ' ' + msg, file=sys.stderr)
 
 
 class Base:

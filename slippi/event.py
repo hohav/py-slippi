@@ -69,7 +69,7 @@ class Start(Base):
 
         is_pal = False
         try:
-            # added: 1.0.0.0
+            # added: 1.0.0
             for i in PORTS:
                 (dash_back, shield_drop) = unpack('LL', stream)
                 dash_back = cls.Player.UCF.DashBack(dash_back)
@@ -77,7 +77,7 @@ class Start(Base):
                 if players[i]:
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
 
-            # added: 1.3.0.0
+            # added: 1.3.0
             for i in PORTS:
                 tag_bytes = stream.read(16)
                 if players[i]:
@@ -87,7 +87,7 @@ class Start(Base):
                     except ValueError: pass
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
 
-            # added: 1.5.0.0
+            # added: 1.5.0
             (is_pal,) = unpack('?', stream)
         except EofException: pass
 
@@ -253,9 +253,9 @@ class Frame(Base):
                     self.random_seed = random_seed #: :py:class:`int`: Random seed at this point
 
                     try:
-                        # added: 1.2.0.0
+                        # added: 1.2.0
                         self.raw_analog_x = unpack('B', stream) #: :py:class:`int`: Raw x analog controller input (for UCF)
-                        # added: 1.4.0.0
+                        # added: 1.4.0
                         self.damage = unpack('f', stream) #: :py:class:`float`: Current damage percent
                     except EofException: pass
 
@@ -268,7 +268,7 @@ class Frame(Base):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
                     state_age = None
                     try:
-                        # added: 0.2.0.0
+                        # added: 0.2.0
                         (state_age,) = unpack('f', stream)
                     except EofException: pass
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik

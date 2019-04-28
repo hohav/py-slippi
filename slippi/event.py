@@ -174,6 +174,7 @@ class Start(Base):
                 UCF = 1
                 ARDUINO = 2
 
+
             class ShieldDrop(IntEnum):
                 OFF = 0
                 UCF = 1
@@ -183,13 +184,14 @@ class Start(Base):
 class End(Base):
     """Information about the end of the game."""
 
-    def __init__(self, method):
+    def __init__(self, method, lras_initiator):
         self.method = method #: :py:class:`Method`: How the game ended (changed: 2.0.0)
+        self.lras_initiator = lras_initiator if lras_initiator < len(PORTS) else None #: :py:class:`optional(int)`: index of player that LRAS'd, if any (added: 2.0.0)
 
     @classmethod
     def _parse(cls, stream):
-        (method,) = unpack('B', stream)
-        return cls(cls.Method(method))
+        (method, lras_initiator) = unpack('BB', stream)
+        return cls(cls.Method(method), lras_initiator)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -261,6 +263,7 @@ class Frame(Base):
                         # added: 1.4.0
                         self.damage = unpack('f', stream) #: :py:class:`float`: Current damage percent
                     except EofException: pass
+
 
             class Post(Base):
                 """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""

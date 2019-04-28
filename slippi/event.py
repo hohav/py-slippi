@@ -184,7 +184,7 @@ class End(Base):
     """Information about the end of the game."""
 
     def __init__(self, method):
-        self.method = method #: :py:class:`Method`: How the game ended
+        self.method = method #: :py:class:`Method`: How the game ended (changed: 2.0.0)
 
     @classmethod
     def _parse(cls, stream):
@@ -198,8 +198,11 @@ class End(Base):
 
 
     class Method(IntEnum):
-        INCONCLUSIVE = 0
-        CONCLUSIVE = 3
+        INCONCLUSIVE = 0 # obsoleted: 2.0.0
+        TIME = 1 # added: 2.0.0
+        GAME = 2 # added: 2.0.0
+        CONCLUSIVE = 3 # obsoleted: 2.0.0
+        NO_CONTEST = 7 # added: 2.0.0
 
 
 class Frame(Base):

@@ -29,7 +29,7 @@ class EventType(IntEnum):
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
-    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal, is_frozen_ps):
+    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal = None, is_frozen_ps = None):
         self.is_teams = is_teams #: :py:class:`bool`: True if this was a teams game
         self.players = players #: tuple(optional(:py:class:`Player`)): Players in this game by port (port 1 is at index 0; empty ports will contain None)
         self.random_seed = random_seed #: :py:class:`int`: Random seed before the game start
@@ -192,7 +192,7 @@ class Start(Base):
 class End(Base):
     """Information about the end of the game."""
 
-    def __init__(self, method, lras_initiator):
+    def __init__(self, method, lras_initiator = None):
         self.method = method #: :py:class:`Method`: How the game ended (changed: 2.0.0)
         self.lras_initiator = lras_initiator #: :py:class:`optional(int)`: index of player that LRAS'd, if any (added: 2.0.0)
 

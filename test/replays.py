@@ -79,8 +79,7 @@ class TestGame(unittest.TestCase):
             players=(
                 Start.Player(character=CSSCharacter.MARTH, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(False, False)),
                 Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.CPU, stocks=4, costume=0, team=None, ucf=Start.Player.UCF(False, False)),
-                None, None),
-            is_pal=False))
+                None, None)))
 
         self.assertEqual(game.end, End(End.Method.CONCLUSIVE))
 

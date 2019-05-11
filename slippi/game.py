@@ -52,7 +52,7 @@ class Game(Base):
         try:
             event_type = evt.EventType(code)
         except ValueError:
-            print('skipping unknown event code: %d' % code)
+            warn('skipping unknown event code: %d' % code)
             return None
         payload = event_stream.read(payload_sizes[event_type])
         stream = io.BytesIO(payload)

@@ -1,5 +1,6 @@
 from slippi.util import *
 from slippi.id import *
+from functools import reduce
 
 
 unknown_enum_values_seen = {}
@@ -291,6 +292,16 @@ class Frame(Base):
                     except EofException:
                         state_age = None
 
+                    try: # added: 2.0.0
+                        flags = unpack('5B', stream)
+                        (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('I?HBB', stream)
+                        flags = StateFlags(reduce(lambda x, y: x + y[1] * 2**(8*y[0]), enumerate(flags), 0))
+                        ground = maybe_ground if not airborne else None
+                        hit_stun = misc_as if flags.HIT_STUN else None
+                        l_cancel = LCancel(l_cancel) if l_cancel else None
+                    except EofException:
+                        (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
+
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
                     self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
                     self.state_age = state_age #: :py:class:`optional(float)`: Number of frames action state has been active. Can have a fractional component for certain actions
@@ -302,6 +313,12 @@ class Frame(Base):
                     self.last_attack_landed = try_enum(Attack, last_attack_landed) if last_attack_landed else None #: optional(:py:class:`Attack` | int): Last attack that this character landed
                     self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: optional(:py:class:`int`): Port of character that last hit this character
                     self.combo_count = combo_count #: :py:class:`int`: Combo count as defined by the game
+                    self.flags = flags #: :py:class:`optional(StateFlags)`: State flags (added: 2.0.0)
+                    self.hit_stun = hit_stun #: :py:class:`optional(int)`: Number of hitstun frames remaining (added: 2.0.0)
+                    self.airborne = airborne #: :py:class:`optional(bool)`: True if character is airborne (added: 2.0.0)
+                    self.ground = ground #: :py:class:`optional(int)`: ID of ground character is standing on, if any (added: 2.0.0)
+                    self.jumps = jumps #: :py:class:`optional(int)`: Jumps remaining (added: 2.0.0)
+                    self.l_cancel = l_cancel #: :py:class:`optional(LCancel)`: L-cancel status, if any (added: 2.0.0)
 
 
     # This class is only used temporarily while parsing frame data.
@@ -457,3 +474,23 @@ class Buttons(Base):
                 if self & b:
                     pressed.append(b)
             return pressed
+
+
+class LCancel(IntEnum):
+    SUCCESS = 1
+    FAILURE = 2
+
+
+class StateFlags(IntFlag):
+    REFLECT = 2**4
+    UNTOUCHABLE = 2**10
+    FAST_FALL = 2**11
+    HIT_LAG = 2**13
+    SHIELD = 2**23
+    HIT_STUN = 2**25
+    SHIELD_TOUCH = 2**26
+    POWER_SHIELD = 2**29
+    FOLLOWER = 2**35
+    SLEEP = 2**36
+    DEAD = 2**38
+    OFF_SCREEN = 2**39

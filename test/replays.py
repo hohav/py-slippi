@@ -145,7 +145,7 @@ class TestGame(unittest.TestCase):
 
     def test_v2(self):
         game = self._game('v2.0')
-        self.assertIsNotNone(game)
+        self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))
 
 
 if __name__ == '__main__':

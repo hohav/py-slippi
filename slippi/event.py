@@ -34,7 +34,7 @@ class Start(Base):
         self.random_seed = random_seed #: :py:class:`int`: Random seed before the game start
         self.slippi = slippi #: :py:class:`Slippi`: Information about the Slippi recorder that generated this replay
         self.stage = stage #: :py:class:`slippi.id.Stage`: Stage on which this game was played
-        self.is_pal = is_pal #: :py:class:`bool`: True if this was a PAL version of Melee
+        self.is_pal = is_pal #: :py:class:`optional(bool)`: True if this was a PAL version of Melee (added: 1.5.0)
 
     @classmethod
     def _parse(cls, stream):
@@ -67,17 +67,16 @@ class Start(Base):
         stream.read(72)
         (random_seed,) = unpack('L', stream)
 
-        is_pal = False
-        try:
-            # added: 1.0.0
+        try: # added: 1.0.0
             for i in PORTS:
                 (dash_back, shield_drop) = unpack('LL', stream)
                 dash_back = cls.Player.UCF.DashBack(dash_back)
                 shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
                 if players[i]:
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
+        except EofException: pass
 
-            # added: 1.3.0
+        try: # added: 1.3.0
             for i in PORTS:
                 tag_bytes = stream.read(16)
                 if players[i]:
@@ -86,10 +85,12 @@ class Start(Base):
                         tag_bytes = tag_bytes[:null_pos]
                     except ValueError: pass
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
-
-            # added: 1.5.0
-            (is_pal,) = unpack('?', stream)
         except EofException: pass
+
+        try: # added: 1.5.0
+            (is_pal,) = unpack('?', stream)
+        except EofException:
+            is_pal = None
 
         return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal)
 
@@ -248,6 +249,17 @@ class Frame(Base):
 
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
+
+                    try: # added: 1.2.0
+                        raw_analog_x = unpack('B', stream)
+                    except EofException:
+                        raw_analog_x = None
+
+                    try: # added: 1.4.0
+                        damage = unpack('f', stream)
+                    except EofException:
+                        damage = None
+
                     self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
@@ -256,30 +268,26 @@ class Frame(Base):
                     self.triggers = Triggers(trigger_logical, trigger_physical_l, trigger_physical_r) #: :py:class:`Triggers`: Trigger state
                     self.buttons = Buttons(buttons_logical, buttons_physical) #: :py:class:`Buttons`: Button state
                     self.random_seed = random_seed #: :py:class:`int`: Random seed at this point
-
-                    try:
-                        # added: 1.2.0
-                        self.raw_analog_x = unpack('B', stream) #: :py:class:`int`: Raw x analog controller input (for UCF)
-                        # added: 1.4.0
-                        self.damage = unpack('f', stream) #: :py:class:`float`: Current damage percent
-                    except EofException: pass
+                    self.raw_analog_x = raw_analog_x #: :py:class:`optional(int)`: Raw x analog controller input (for UCF) (added: 1.2.0)
+                    self.damage = damage #: :py:class:`optional(float)`: Current damage percent (added: 1.4.0)
 
 
             class Post(Base):
                 """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""
 
-                __slots__ = 'character', 'state', 'state_age', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count'
+                __slots__ = 'character', 'state', 'state_age', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
 
                 def __init__(self, stream):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
-                    state_age = None
-                    try:
-                        # added: 0.2.0
+
+                    try: # added: 0.2.0
                         (state_age,) = unpack('f', stream)
-                    except EofException: pass
+                    except EofException:
+                        state_age = None
+
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
                     self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
-                    self.state_age = state_age #: :py:class:`float`: Number of frames action state has been active. Can have a fractional component for certain actions
+                    self.state_age = state_age #: :py:class:`optional(float)`: Number of frames action state has been active. Can have a fractional component for certain actions
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
                     self.damage = damage #: :py:class:`float`: Current damage percent

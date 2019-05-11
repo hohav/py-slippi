@@ -28,13 +28,14 @@ class EventType(IntEnum):
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
-    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal):
+    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal, is_frozen_ps):
         self.is_teams = is_teams #: :py:class:`bool`: True if this was a teams game
         self.players = players #: tuple(optional(:py:class:`Player`)): Players in this game by port (port 1 is at index 0; empty ports will contain None)
         self.random_seed = random_seed #: :py:class:`int`: Random seed before the game start
         self.slippi = slippi #: :py:class:`Slippi`: Information about the Slippi recorder that generated this replay
         self.stage = stage #: :py:class:`slippi.id.Stage`: Stage on which this game was played
         self.is_pal = is_pal #: :py:class:`optional(bool)`: True if this was a PAL version of Melee (added: 1.5.0)
+        self.is_frozen_ps = is_frozen_ps #: :py:class:`optional(bool)`: True if frozen Pokemon Stadium was enabled (added: 2.0.0)
 
     @classmethod
     def _parse(cls, stream):
@@ -92,7 +93,12 @@ class Start(Base):
         except EofException:
             is_pal = None
 
-        return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal)
+        try: # added: 2.0.0
+            (is_frozen_ps,) = unpack('?', stream)
+        except EofException:
+            is_frozen_ps = None
+
+        return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal, is_frozen_ps=is_frozen_ps)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

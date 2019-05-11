@@ -121,15 +121,15 @@ class Start(Base):
                 self.major = major #: :py:class:`int`:
                 self.minor = minor #: :py:class:`int`:
                 self.revision = revision #: :py:class:`int`:
-                self.build = build #: :py:class:`int`:
+                # build was obsoleted in 2.0.0, and never held a nonzero value
 
             def __repr__(self):
-                return '%d.%d.%d.%d' % (self.major, self.minor, self.revision, self.build)
+                return '%d.%d.%d' % (self.major, self.minor, self.revision)
 
             def __eq__(self, other):
                 if not isinstance(other, self.__class__):
                     return NotImplemented
-                return self.major == other.major and self.minor == other.minor and self.revision == other.revision and self.build == other.build
+                return self.major == other.major and self.minor == other.minor and self.revision == other.revision
 
 
     class Player(Base):

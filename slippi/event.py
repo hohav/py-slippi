@@ -194,11 +194,16 @@ class End(Base):
 
     def __init__(self, method, lras_initiator):
         self.method = method #: :py:class:`Method`: How the game ended (changed: 2.0.0)
-        self.lras_initiator = lras_initiator if lras_initiator < len(PORTS) else None #: :py:class:`optional(int)`: index of player that LRAS'd, if any (added: 2.0.0)
+        self.lras_initiator = lras_initiator #: :py:class:`optional(int)`: index of player that LRAS'd, if any (added: 2.0.0)
 
     @classmethod
     def _parse(cls, stream):
-        (method, lras_initiator) = unpack('BB', stream)
+        (method,) = unpack('B', stream)
+        try: # added: 2.0.0
+            (lras,) = unpack('B', stream)
+            lras_initiator = lras if lras < len(PORTS) else None
+        except EofException:
+            lras_initiator = None
         return cls(cls.Method(method), lras_initiator)
 
     def __eq__(self, other):

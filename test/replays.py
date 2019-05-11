@@ -143,6 +143,10 @@ class TestGame(unittest.TestCase):
         game = self._game('nintendont')
         self.assertEqual(game.metadata.platform, Game.Metadata.Platform.NINTENDONT)
 
+    def test_v2(self):
+        game = self._game('v2.0')
+        self.assertIsNotNone(game)
+
 
 if __name__ == '__main__':
     unittest.main()

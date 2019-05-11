@@ -124,7 +124,7 @@ class Start(Base):
 
 
         class Version(Base):
-            def __init__(self, major, minor, revision, build):
+            def __init__(self, major, minor, revision, build = None):
                 self.major = major #: :py:class:`int`:
                 self.minor = minor #: :py:class:`int`:
                 self.revision = revision #: :py:class:`int`:

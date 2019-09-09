@@ -29,6 +29,7 @@ class Game(Base):
         """:py:class:`slippi.event.End`: Information about the end of the game"""
 
         self._out_of_order = False
+        self._warnings = []
 
         self._parse_file(path)
 
@@ -44,7 +45,7 @@ class Game(Base):
         payload_sizes = {}
         for i in range(command_count):
             (code, size) = unpack('BH', stream)
-            payload_sizes[evt.EventType(code)] = size
+            payload_sizes[code] = size
         return payload_sizes
 
     def _parse_event(self, event_stream, payload_sizes):
@@ -52,9 +53,13 @@ class Game(Base):
         try:
             event_type = evt.EventType(code)
         except ValueError:
-            warn('skipping unknown event code: %d' % code)
+            if not code in self._warnings:
+                warn('skipping unknown event code: %d' % code)
+                self._warnings.append(code)
+            event_stream.read(payload_sizes[code])
             return None
-        payload = event_stream.read(payload_sizes[event_type])
+
+        payload = event_stream.read(payload_sizes[code])
         stream = io.BytesIO(payload)
         if event_type is evt.EventType.GAME_START:
             return evt.Start._parse(stream)
@@ -118,7 +123,7 @@ class Game(Base):
                 elif isinstance(event, evt.End):
                     self.end = event
                 else:
-                    raise Exception('unexpected event: %s' % event)
+                    pass
         except EofException:
             pass
 

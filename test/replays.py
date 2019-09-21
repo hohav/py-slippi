@@ -98,7 +98,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self._game('dash_back').start.players[0].ucf, Start.Player.UCF(dash_back=True, shield_drop=False))
 
     def test_buttons_lrzs(self):
-        game = self._game('buttons-lrzs')
+        game = self._game('buttons_lrzs')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.TRIGGER_ANALOG, BPhys.NONE),
             Buttons(BLog.TRIGGER_ANALOG|BLog.L, BPhys.L),
@@ -108,7 +108,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.START, BPhys.START)])
 
     def test_buttons_abxy(self):
-        game = self._game('buttons-abxy')
+        game = self._game('buttons_abxy')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.A, BPhys.A),
             Buttons(BLog.B, BPhys.B),
@@ -116,7 +116,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.Y, BPhys.Y)])
 
     def test_dpad_udlr(self):
-        game = self._game('dpad-udlr')
+        game = self._game('dpad_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.DPAD_UP, BPhys.DPAD_UP),
             Buttons(BLog.DPAD_DOWN, BPhys.DPAD_DOWN),
@@ -124,7 +124,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.DPAD_RIGHT, BPhys.DPAD_RIGHT)])
 
     def test_cstick_udlr(self):
-        game = self._game('cstick-udlr')
+        game = self._game('cstick_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.CSTICK_UP, BPhys.NONE),
             Buttons(BLog.CSTICK_DOWN, BPhys.NONE),
@@ -132,7 +132,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.CSTICK_RIGHT, BPhys.NONE)])
 
     def test_joystick_udlr(self):
-        game = self._game('joystick-udlr')
+        game = self._game('joystick_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.JOYSTICK_UP, BPhys.NONE),
             Buttons(BLog.JOYSTICK_DOWN, BPhys.NONE),

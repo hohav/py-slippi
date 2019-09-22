@@ -44,18 +44,17 @@ class Game(Base):
         payload_sizes = {}
         for i in range(command_count):
             (code, size) = unpack('BH', stream)
-            payload_sizes[evt.EventType(code)] = size
+            payload_sizes[code] = size
         return payload_sizes
 
     def _parse_event(self, event_stream, payload_sizes):
         (code,) = unpack('B', event_stream)
-        try:
-            event_type = evt.EventType(code)
-        except ValueError:
-            warn('skipping unknown event code: %d' % code)
-            return None
-        payload = event_stream.read(payload_sizes[event_type])
+        payload = event_stream.read(payload_sizes[code])
         stream = io.BytesIO(payload)
+
+        try: event_type = evt.EventType(code)
+        except ValueError: event_type = None
+
         if event_type is evt.EventType.GAME_START:
             return evt.Start._parse(stream)
         elif event_type is evt.EventType.FRAME_PRE:
@@ -67,7 +66,8 @@ class Game(Base):
         elif event_type is evt.EventType.GAME_END:
             return evt.End._parse(stream)
         else:
-            raise Exception('unexpected event: %s' % event_type)
+            warn('unknown event code: 0x%02x' % code)
+            return None
 
     def _parse_file(self, path):
         """Parses the .slp file at `path`. Called automatically by our constructor."""
@@ -117,8 +117,6 @@ class Game(Base):
                     self.start = event
                 elif isinstance(event, evt.End):
                     self.end = event
-                else:
-                    raise Exception('unexpected event: %s' % event)
         except EofException:
             pass
 

@@ -19,5 +19,5 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires='~=3.6',
     url="https://github.com/hohav/py-slippi",
-    version="1.3.0",
+    version="1.3.1",
 )

@@ -147,6 +147,10 @@ class TestGame(unittest.TestCase):
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))
 
+    def test_unknown_event(self):
+        with self.assertWarns(Warning):
+            game = self._game('unknown_event')
+
 
 if __name__ == '__main__':
     unittest.main()

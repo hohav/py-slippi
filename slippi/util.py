@@ -1,7 +1,11 @@
-import enum, inspect, struct, sys, termcolor
+import enum, inspect, struct, sys, termcolor, warnings
 
 
 PORTS = range(4)
+
+
+warnings.formatwarning = lambda msg, *args, **kwargs: '%s %s\n' % (termcolor.colored('WARNING', 'yellow'), msg)
+warn = warnings.warn
 
 
 def _attrs(obj):
@@ -21,10 +25,6 @@ def unpack(fmt, stream):
     if not bytes:
         raise EofException()
     return struct.unpack(fmt, bytes)
-
-
-def warn(msg):
-    print(termcolor.colored('WARNING', 'yellow') + ' ' + msg, file=sys.stderr)
 
 
 class Base:

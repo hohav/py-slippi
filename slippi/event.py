@@ -53,16 +53,21 @@ class Start(Base):
         players = []
         for i in PORTS:
             (character, type, stocks, costume) = unpack('BBBB', stream)
-            character = CSSCharacter(character)
 
             stream.read(5)
             (team,) = unpack('B', stream)
-            team = cls.Player.Team(team) if is_teams else None
-
             stream.read(26)
+
             try:
-                player = cls.Player(character=character, type=cls.Player.Type(type), stocks=stocks, costume=costume, team=team)
-            except ValueError: player = None
+                type = cls.Player.Type(type)
+            except ValueError: type = None
+
+            if type is not None:
+                character = CSSCharacter(character)
+                team = cls.Player.Team(team) if is_teams else None
+                player = cls.Player(character=character, type=type, stocks=stocks, costume=costume, team=team)
+            else:
+                player = None
 
             players.append(player)
 

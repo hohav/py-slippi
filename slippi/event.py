@@ -4,20 +4,25 @@ from slippi.util import *
 from slippi.id import *
 
 
-def try_enum(enum, val):
-    try:
-        return enum(val)
-    except ValueError:
-        warn('unknown %s: %s' % (enum.__name__, val))
-        return val
+# The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
+FIRST_FRAME_INDEX = -123
 
 
 class EventType(IntEnum):
+    """Slippi events that can appear in a game's `raw` data."""
+
     EVENT_PAYLOADS = 0x35
     GAME_START = 0x36
     FRAME_PRE = 0x37
     FRAME_POST = 0x38
     GAME_END = 0x39
+
+
+class PseudoEventType(IntEnum):
+    """Synthesized events that don't correspond to a Slippi event type. Used only as keys for event handlers."""
+
+    FRAME_FINALIZE = 0 #: All data (pre & post) for a given frame has been processed. The handler will receive a :py:class:`Frame` object.
+    METADATA = 1 #: Metadata has been parsed (occurs after all other events). The handler will receive a :py:class:`slippi.metadata.Metadata` object.
 
 
 class Start(Base):

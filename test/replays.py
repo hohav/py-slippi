@@ -3,6 +3,7 @@
 import datetime, os, unittest
 
 from slippi import Game
+from slippi.metadata import Metadata
 from slippi.id import InGameCharacter, CSSCharacter, Stage
 from slippi.event import Start, End, Frame, Buttons, Triggers, Position
 
@@ -55,20 +56,20 @@ class TestGame(unittest.TestCase):
     def test_game(self):
         game = self._game('game')
 
-        self.assertEqual(game.metadata, Game.Metadata._parse({
+        self.assertEqual(game.metadata, Metadata._parse({
             'startAt': '2018-06-22T07:52:59Z',
             'lastFrame': 5085,
             'playedOn': 'dolphin',
             'players': {
                 '0': {'characters': {InGameCharacter.MARTH: 5209}},
                 '1': {'characters': {InGameCharacter.FOX: 5209}}}}))
-        self.assertEqual(game.metadata, Game.Metadata(
+        self.assertEqual(game.metadata, Metadata(
             date=datetime.datetime(2018, 6, 22, 7, 52, 59, 0, datetime.timezone.utc),
             duration=5209,
-            platform=Game.Metadata.Platform.DOLPHIN,
+            platform=Metadata.Platform.DOLPHIN,
             players=(
-                Game.Metadata.Player({InGameCharacter.MARTH: 5209}),
-                Game.Metadata.Player({InGameCharacter.FOX: 5209}),
+                Metadata.Player({InGameCharacter.MARTH: 5209}),
+                Metadata.Player({InGameCharacter.FOX: 5209}),
                 None, None)))
 
         self.assertEqual(game.start, Start(
@@ -141,7 +142,7 @@ class TestGame(unittest.TestCase):
 
     def test_nintendont(self):
         game = self._game('nintendont')
-        self.assertEqual(game.metadata.platform, Game.Metadata.Platform.NINTENDONT)
+        self.assertEqual(game.metadata.platform, Metadata.Platform.NINTENDONT)
 
     def test_v2(self):
         game = self._game('v2.0')

@@ -18,6 +18,14 @@ def _format(obj):
     return '%.02f' % obj if isinstance(obj, float) else obj
 
 
+def try_enum(enum, val):
+    try:
+        return enum(val)
+    except ValueError:
+        warn('unknown %s: %s' % (enum.__name__, val))
+        return val
+
+
 def unpack(fmt, stream):
     fmt = '>' + fmt
     size = struct.calcsize(fmt)
@@ -25,6 +33,12 @@ def unpack(fmt, stream):
     if not bytes:
         raise EofException()
     return struct.unpack(fmt, bytes)
+
+
+def expect_bytes(expected_bytes, stream):
+    read_bytes = stream.read(len(expected_bytes))
+    if read_bytes != expected_bytes:
+        raise Exception(f'expected {expected_bytes}, but got: {read_bytes}')
 
 
 class Base:

@@ -1,20 +1,14 @@
-from slippi.util import *
-from slippi.id import *
 from functools import reduce
 
+from slippi.util import *
+from slippi.id import *
 
-unknown_enum_values_seen = {}
 
 def try_enum(enum, val):
     try:
         return enum(val)
     except ValueError:
-        name = enum.__name__
-        if not name in unknown_enum_values_seen:
-            unknown_enum_values_seen[name] = {}
-        if not val in unknown_enum_values_seen[name]:
-            unknown_enum_values_seen[name][val] = 1
-            warn('unknown %s: %s' % (name, val))
+        warn('unknown %s: %s' % (enum.__name__, val))
         return val
 
 

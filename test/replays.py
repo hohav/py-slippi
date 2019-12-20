@@ -2,10 +2,10 @@
 
 import datetime, os, unittest
 
-from slippi import Game
+from slippi import Game, parse
 from slippi.metadata import Metadata
 from slippi.id import InGameCharacter, CSSCharacter, Stage
-from slippi.event import Start, End, Frame, Buttons, Triggers, Position
+from slippi.event import Start, End, Frame, Buttons, Triggers, Position, ParseEvent
 
 
 BPhys = Buttons.Physical
@@ -16,9 +16,13 @@ def norm(f):
     return 1 if f > 0.01 else -1 if f < -0.01 else 0
 
 
+def path(name):
+    return os.path.join(os.path.dirname(__file__), 'replays', name + '.slp')
+
+
 class TestGame(unittest.TestCase):
     def _game(self, name):
-        return Game(os.path.join(os.path.dirname(__file__), 'replays', name+'.slp'))
+        return Game(path(name))
 
     def _stick_seq(self, game):
         pass
@@ -151,6 +155,16 @@ class TestGame(unittest.TestCase):
     def test_unknown_event(self):
         with self.assertWarns(Warning):
             game = self._game('unknown_event')
+
+
+class TestParse(unittest.TestCase):
+    def test_parse(self):
+        metadata = None
+        def set_metadata(x):
+            nonlocal metadata
+            metadata = x
+        parse(path('game'), {ParseEvent.METADATA: set_metadata})
+        self.assertEqual(metadata.duration, 5209)
 
 
 if __name__ == '__main__':

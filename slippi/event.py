@@ -253,11 +253,25 @@ class Frame(Base):
         class Data(Base):
             """Frame data for a given character. Includes both pre-frame and post-frame data."""
 
-            __slots__ = 'pre', 'post'
+            __slots__ = '_pre', '_post'
 
             def __init__(self):
-                self.pre = None #: :py:class:`Pre`: Pre-frame update data
-                self.post = None #: :py:class:`Post`: Post-frame update data
+                self._pre = None
+                self._post = None
+
+            @property
+            def pre(self):
+                """:py:class:`Pre`: Pre-frame update data"""
+                if not isinstance(self._pre, self.Pre):
+                    self._pre = self.Pre(self._pre)
+                return self._pre
+
+            @property
+            def post(self):
+                """:py:class:`Post`: Pre-frame update data"""
+                if not isinstance(self._post, self.Post):
+                    self._post = self.Post(self._post)
+                return self._post
 
 
             class Pre(Base):
@@ -334,14 +348,22 @@ class Frame(Base):
 
     # This class is only used temporarily while parsing frame data.
     class Event(Base):
-        def __init__(self, id, data):
+        __slots__ = 'id', 'type', 'data'
+
+        def __init__(self, id, type, data):
             self.id = id
+            self.type = type
             self.data = data
 
 
         class Id(Base):
             def __init__(self, stream):
                 (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
+
+
+        class Type(Enum):
+            PRE = 'pre'
+            POST = 'post'
 
 
 class Position(Base):

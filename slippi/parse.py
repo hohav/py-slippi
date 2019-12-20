@@ -36,10 +36,12 @@ def _parse_event(event_stream, payload_sizes):
         event = Start._parse(stream)
     elif event_type is EventType.FRAME_PRE:
         event = Frame.Event(Frame.Event.Id(stream),
-                            Frame.Port.Data.Pre(stream))
+                            Frame.Event.Type.PRE,
+                            stream)
     elif event_type is EventType.FRAME_POST:
         event = Frame.Event(Frame.Event.Id(stream),
-                            Frame.Port.Data.Post(stream))
+                            Frame.Event.Type.POST,
+                            stream)
     elif event_type is EventType.GAME_END:
         event = End._parse(stream)
     else:
@@ -85,10 +87,10 @@ def _parse_events(stream, length, payload_sizes, handlers):
             else:
                 data = port.leader
 
-            if isinstance(event.data, Frame.Port.Data.Pre):
-                data.pre = event.data
-            elif isinstance(event.data, Frame.Port.Data.Post):
-                data.post = event.data
+            if event.type is Frame.Event.Type.PRE:
+                data._pre = event.data
+            elif event.type is Frame.Event.Type.POST:
+                data._post = event.data
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
 

@@ -18,11 +18,13 @@ class EventType(IntEnum):
     GAME_END = 0x39
 
 
-class PseudoEventType(IntEnum):
-    """Synthesized events that don't correspond to a Slippi event type. Used only as keys for event handlers."""
+class ParseEvent(Enum):
+    """Parser events, used as keys for event handlers. Docstrings indicate the type of object that will be passed to each handler."""
 
-    FRAME_FINALIZE = 0 #: All data (pre & post) for a given frame has been processed. The handler will receive a :py:class:`Frame` object.
-    METADATA = 1 #: Metadata has been parsed (occurs after all other events). The handler will receive a :py:class:`slippi.metadata.Metadata` object.
+    METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`
+    START = 'start' #: :py:class:`Start`
+    FRAME = 'frame' #: :py:class:`Frame`
+    END = 'end' # :py:class:`End`
 
 
 class Start(Base):

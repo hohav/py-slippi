@@ -1,6 +1,6 @@
 import io, ubjson
 
-from slippi.event import EventType, PseudoEventType, Start, End, Frame
+from slippi.event import EventType, ParseEvent, Start, End, Frame
 from slippi.metadata import Metadata
 from slippi.util import *
 
@@ -25,7 +25,7 @@ def _parse_event_payloads(stream):
     return payload_sizes
 
 
-def _parse_event(event_stream, payload_sizes, handlers):
+def _parse_event(event_stream, payload_sizes):
     (code,) = unpack('B', event_stream)
     stream = io.BytesIO(event_stream.read(payload_sizes[code]))
 
@@ -46,10 +46,6 @@ def _parse_event(event_stream, payload_sizes, handlers):
         warn('unknown event code: 0x%02x' % code)
         event = None
 
-    handler = handlers.get(event_type)
-    if event and handler:
-        handler(event)
-
     return event
 
 
@@ -57,11 +53,19 @@ def _parse_events(stream, length, payload_sizes, handlers):
     current_frame = None
 
     while stream.tell() < length:
-        event = _parse_event(stream, payload_sizes, handlers)
-        if isinstance(event, Frame.Event):
+        event = _parse_event(stream, payload_sizes)
+        if isinstance(event, Start):
+            handler = handlers.get(ParseEvent.START)
+            if handler:
+                handler(event)
+        elif isinstance(event, End):
+            handler = handlers.get(ParseEvent.END)
+            if handler:
+                handler(event)
+        elif isinstance(event, Frame.Event):
             if current_frame and current_frame.index != event.id.frame:
                 current_frame._finalize()
-                handler = handlers.get(PseudoEventType.FRAME_FINALIZE)
+                handler = handlers.get(ParseEvent.FRAME)
                 if handler:
                     handler(current_frame)
                 current_frame = None
@@ -90,7 +94,7 @@ def _parse_events(stream, length, payload_sizes, handlers):
 
     if current_frame:
         current_frame._finalize()
-        handler = handlers.get(PseudoEventType.FRAME_FINALIZE)
+        handler = handlers.get(ParseEvent.FRAME)
         if handler:
             handler(current_frame)
 
@@ -105,7 +109,7 @@ def _parse(stream, handlers):
 
     expect_bytes(b'U\x08metadata', stream)
     metadata = Metadata._parse(ubjson.load(stream))
-    handler = handlers.get(PseudoEventType.METADATA)
+    handler = handlers.get(ParseEvent.METADATA)
     if handler:
         handler(metadata)
     expect_bytes(b'}', stream)
@@ -114,7 +118,7 @@ def _parse(stream, handlers):
 def parse(input, handlers):
     """Parses Slippi replay data from `input` (stream or path).
 
-    `handlers` should be a dict of :py:class:`slippi.event.EventType` and/or :py:class:`slippi.event.PseudoEventType` keys to handler functions. During parsing, each event will be passed to the corresponding handler as it occurs."""
+    `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
 
     if isinstance(input, str):
         with open(input, 'rb') as f:

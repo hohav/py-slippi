@@ -1,4 +1,4 @@
-from slippi.event import EventType, PseudoEventType
+from slippi.event import ParseEvent
 from slippi.parse import parse
 from slippi.util import *
 
@@ -22,10 +22,10 @@ class Game(Base):
         """:py:class:`slippi.event.End`: Information about the end of the game"""
 
         handlers = {
-            EventType.GAME_START: lambda x: setattr(self, 'start', x),
-            EventType.GAME_END: lambda x: setattr(self, 'end', x),
-            PseudoEventType.FRAME_FINALIZE: lambda x: self.frames.append(x),
-            PseudoEventType.METADATA: lambda x: setattr(self, 'metadata', x)}
+            ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
+            ParseEvent.START: lambda x: setattr(self, 'start', x),
+            ParseEvent.FRAME: lambda x: self.frames.append(x),
+            ParseEvent.END: lambda x: setattr(self, 'end', x)}
 
         parse(input, handlers)
 

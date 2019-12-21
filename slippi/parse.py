@@ -51,10 +51,11 @@ def _parse_event(event_stream, payload_sizes):
     return event
 
 
-def _parse_events(stream, length, payload_sizes, handlers):
+def _parse_events(stream, payload_sizes, handlers):
     current_frame = None
+    done = False
 
-    while stream.tell() < length:
+    while not done:
         event = _parse_event(stream, payload_sizes)
         if isinstance(event, Start):
             handler = handlers.get(ParseEvent.START)
@@ -64,6 +65,7 @@ def _parse_events(stream, length, payload_sizes, handlers):
             handler = handlers.get(ParseEvent.END)
             if handler:
                 handler(event)
+            done = True
         elif isinstance(event, Frame.Event):
             if current_frame and current_frame.index != event.id.frame:
                 current_frame._finalize()
@@ -103,8 +105,10 @@ def _parse_events(stream, length, payload_sizes, handlers):
 
 def _parse(stream, handlers):
     expect_bytes(b'{U\x03raw[$U#l', stream)
-    (length,) = unpack('l', stream)
-    raw_stream = io.BytesIO(stream.read(length))
+    (length,) = unpack('l', stream) # currently unused
+
+    payload_sizes = _parse_event_payloads(stream)
+    _parse_events(stream, payload_sizes, handlers)
 
     # Parse metadata first because it may useful while parsing frames
     expect_bytes(b'U\x08metadata', stream)
@@ -113,9 +117,6 @@ def _parse(stream, handlers):
     if handler:
         handler(metadata)
     expect_bytes(b'}', stream)
-
-    payload_sizes = _parse_event_payloads(raw_stream)
-    _parse_events(raw_stream, length, payload_sizes, handlers)
 
 
 def parse(input, handlers):

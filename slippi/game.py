@@ -14,6 +14,9 @@ class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
     def __init__(self, path, partial_parse=False):
+        """Reads data from the Slippi (.slp) replay file at `path`.
+        If `partial_parse` is `True`, only metadata and Game Start/End events will be parsed for a speedup.
+        """
 
         self.metadata = None
         """:py:class:`Metadata`: Miscellaneous data relevant to the game but not directly provided by Melee"""
@@ -32,7 +35,7 @@ class Game(Base):
         if partial_parse:
             self._parse_file_partial(path)
         else:
-        self._parse_file(path)
+            self._parse_file(path)
 
     def _parse_event_payloads(self, stream):
         (code, payload_size) = unpack('BB', stream)
@@ -121,7 +124,7 @@ class Game(Base):
                     self.end = event
         except EofException:
             pass
-
+    
     def _parse_file_partial(self, path):
         """Parses only the metadata, start and end events for the .slp file at `path`. Called automatically by our constructor."""
 

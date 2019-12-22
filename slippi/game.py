@@ -129,6 +129,24 @@ class Game(Base):
             json = ubjson.load(f)
 
         self.metadata = self.Metadata._parse(json['metadata'])
+
+        stream = io.BytesIO(json['raw'])
+        payload_sizes = self._parse_event_payloads(stream)
+        
+        try:
+            while True:
+                (code,) = unpack('B', stream)
+                payload = stream.read(payload_sizes[code])
+                payload_stream = io.BytesIO(payload)
+                try: event_type = evt.EventType(code)
+                except ValueError: event_type = None
+                if event_type == evt.EventType.GAME_START:
+                    self.start = evt.Start._parse(payload_stream)
+                elif event_type == evt.EventType.GAME_END:
+                    self.end = evt.End._parse(payload_stream)
+        except EofException:
+            pass
+
     def __repr__(self):
         return '%s(metadata=%s, start=%s, end=%s, frames=[...])' % \
             (self.__class__.__name__, self.metadata, self.start, self.end)

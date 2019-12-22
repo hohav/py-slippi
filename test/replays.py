@@ -18,7 +18,7 @@ def norm(f):
 class TestGame(unittest.TestCase):
     def _game(self, name):
         return Game(os.path.join(os.path.dirname(__file__), 'replays', name+'.slp'))
-
+    
     def _game_partial(self, name):
         return Game(
             os.path.join(os.path.dirname(__file__), 'replays', name+'.slp'),
@@ -109,6 +109,19 @@ class TestGame(unittest.TestCase):
                 Game.Metadata.Player({InGameCharacter.MARTH: 5209}),
                 Game.Metadata.Player({InGameCharacter.FOX: 5209}),
                 None, None)))
+
+        self.assertEqual(game.start, Start(
+            is_teams=False,
+            random_seed=3803194226,
+            slippi=Start.Slippi(Start.Slippi.Version(1,0,0,0)),
+            stage=Stage.YOSHIS_STORY,
+            players=(
+                Start.Player(character=CSSCharacter.MARTH, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(False, False)),
+                Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.CPU, stocks=4, costume=0, team=None, ucf=Start.Player.UCF(False, False)),
+                None, None)))
+
+        self.assertEqual(game.end, End(End.Method.CONCLUSIVE))
+
     def test_ics(self):
         game = self._game('ics')
         self.assertEqual(game.metadata.players[0].characters, {

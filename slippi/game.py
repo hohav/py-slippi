@@ -13,8 +13,7 @@ FIRST_FRAME_INDEX = -123
 class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
-    def __init__(self, path):
-        """Reads data from the Slippi (.slp) replay file at `path`."""
+    def __init__(self, path, partial_parse=False):
 
         self.metadata = None
         """:py:class:`Metadata`: Miscellaneous data relevant to the game but not directly provided by Melee"""
@@ -30,6 +29,9 @@ class Game(Base):
 
         self._out_of_order = False
 
+        if partial_parse:
+            self._parse_file_partial(path)
+        else:
         self._parse_file(path)
 
     def _parse_event_payloads(self, stream):
@@ -120,6 +122,13 @@ class Game(Base):
         except EofException:
             pass
 
+    def _parse_file_partial(self, path):
+        """Parses only the metadata, start and end events for the .slp file at `path`. Called automatically by our constructor."""
+
+        with open(path, 'rb') as f:
+            json = ubjson.load(f)
+
+        self.metadata = self.Metadata._parse(json['metadata'])
     def __repr__(self):
         return '%s(metadata=%s, start=%s, end=%s, frames=[...])' % \
             (self.__class__.__name__, self.metadata, self.start, self.end)

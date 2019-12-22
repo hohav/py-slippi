@@ -19,6 +19,12 @@ class TestGame(unittest.TestCase):
     def _game(self, name):
         return Game(os.path.join(os.path.dirname(__file__), 'replays', name+'.slp'))
 
+    def _game_partial(self, name):
+        return Game(
+            os.path.join(os.path.dirname(__file__), 'replays', name+'.slp'),
+            partial_parse=True
+        )
+
     def _stick_seq(self, game):
         pass
 
@@ -85,6 +91,24 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(game.metadata.duration, len(game.frames))
 
+    def test_game_partial_parse(self):
+        game = self._game_partial('game')
+
+        self.assertEqual(game.metadata, Game.Metadata._parse({
+            'startAt': '2018-06-22T07:52:59Z',
+            'lastFrame': 5085,
+            'playedOn': 'dolphin',
+            'players': {
+                '0': {'characters': {InGameCharacter.MARTH: 5209}},
+                '1': {'characters': {InGameCharacter.FOX: 5209}}}}))
+        self.assertEqual(game.metadata, Game.Metadata(
+            date=datetime.datetime(2018, 6, 22, 7, 52, 59, 0, datetime.timezone.utc),
+            duration=5209,
+            platform=Game.Metadata.Platform.DOLPHIN,
+            players=(
+                Game.Metadata.Player({InGameCharacter.MARTH: 5209}),
+                Game.Metadata.Player({InGameCharacter.FOX: 5209}),
+                None, None)))
     def test_ics(self):
         game = self._game('ics')
         self.assertEqual(game.metadata.players[0].characters, {

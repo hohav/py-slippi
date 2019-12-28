@@ -110,7 +110,6 @@ def _parse(stream, handlers):
     payload_sizes = _parse_event_payloads(stream)
     _parse_events(stream, payload_sizes, handlers)
 
-    # Parse metadata first because it may useful while parsing frames
     expect_bytes(b'U\x08metadata', stream)
     metadata = Metadata._parse(ubjson.load(stream))
     handler = handlers.get(ParseEvent.METADATA)

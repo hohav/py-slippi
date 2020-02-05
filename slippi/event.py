@@ -59,8 +59,7 @@ class Start(Base):
             (team,) = unpack('B', stream)
             stream.read(26)
 
-            try:
-                type = cls.Player.Type(type)
+            try: type = cls.Player.Type(type)
             except ValueError: type = None
 
             if type is not None:
@@ -95,15 +94,13 @@ class Start(Base):
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
         except EofException: pass
 
-        try: # added: 1.5.0
-            (is_pal,) = unpack('?', stream)
-        except EofException:
-            is_pal = None
+        # added: 1.5.0
+        try: (is_pal,) = unpack('?', stream)
+        except EofException: is_pal = None
 
-        try: # added: 2.0.0
-            (is_frozen_ps,) = unpack('?', stream)
-        except EofException:
-            is_frozen_ps = None
+        # added: 2.0.0
+        try: (is_frozen_ps,) = unpack('?', stream)
+        except EofException: is_frozen_ps = None
 
         return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal, is_frozen_ps=is_frozen_ps)
 
@@ -282,15 +279,13 @@ class Frame(Base):
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
-                    try: # added: 1.2.0
-                        raw_analog_x = unpack('B', stream)
-                    except EofException:
-                        raw_analog_x = None
+                    # added: 1.2.0
+                    try: raw_analog_x = unpack('B', stream)
+                    except EofException: raw_analog_x = None
 
-                    try: # added: 1.4.0
-                        damage = unpack('f', stream)
-                    except EofException:
-                        damage = None
+                    # added: 1.4.0
+                    try: damage = unpack('f', stream)
+                    except EofException: damage = None
 
                     self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
@@ -312,10 +307,9 @@ class Frame(Base):
                 def __init__(self, stream):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
 
-                    try: # added: 0.2.0
-                        (state_age,) = unpack('f', stream)
-                    except EofException:
-                        state_age = None
+                    # added: 0.2.0
+                    try: (state_age,) = unpack('f', stream)
+                    except EofException: state_age = None
 
                     try: # added: 2.0.0
                         flags = unpack('5B', stream)

@@ -20,14 +20,12 @@ class Metadata(Base):
         # timezone & fractional seconds aren't always provided, so parse the date manually (strptime lacks support for optional components)
         m = [int(g or '0') for g in re.search(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(?:Z|\+(\d{2})(\d{2}))?$', d).groups()]
         date = datetime(*m[:7], timezone(timedelta(hours=m[7], minutes=m[8])))
-        try:
-            duration = 1 + json['lastFrame'] - evt.FIRST_FRAME_INDEX
+        try: duration = 1 + json['lastFrame'] - evt.FIRST_FRAME_INDEX
         except KeyError: duration = None
         platform = cls.Platform(json['playedOn'])
         players = [None, None, None, None]
         for i in PORTS:
-            try:
-                players[i] = cls.Player._parse(json['players'][str(i)]['characters'])
+            try: players[i] = cls.Player._parse(json['players'][str(i)]['characters'])
             except KeyError: pass
         return cls(date=date, duration=duration, platform=platform, players=tuple(players))
 

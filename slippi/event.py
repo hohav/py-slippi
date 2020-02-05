@@ -319,7 +319,7 @@ class Frame(Base):
 
                     try: # added: 2.0.0
                         flags = unpack('5B', stream)
-                        (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('I?HBB', stream)
+                        (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
                         flags = StateFlags(reduce(lambda x, y: x + y[1] * 2**(8*y[0]), enumerate(flags), 0))
                         ground = maybe_ground if not airborne else None
                         hit_stun = misc_as if flags.HIT_STUN else None
@@ -339,7 +339,7 @@ class Frame(Base):
                     self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: optional(:py:class:`int`): Port of character that last hit this character
                     self.combo_count = combo_count #: :py:class:`int`: Combo count as defined by the game
                     self.flags = flags #: :py:class:`optional(StateFlags)`: State flags (added: 2.0.0)
-                    self.hit_stun = hit_stun #: :py:class:`optional(int)`: Number of hitstun frames remaining (added: 2.0.0)
+                    self.hit_stun = hit_stun #: :py:class:`optional(float)`: Number of hitstun frames remaining (added: 2.0.0)
                     self.airborne = airborne #: :py:class:`optional(bool)`: True if character is airborne (added: 2.0.0)
                     self.ground = ground #: :py:class:`optional(int)`: ID of ground character is standing on, if any (added: 2.0.0)
                     self.jumps = jumps #: :py:class:`optional(int)`: Jumps remaining (added: 2.0.0)

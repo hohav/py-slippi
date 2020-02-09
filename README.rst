@@ -33,6 +33,14 @@ Usage
         data = frame.ports[0].leader # see also: port.follower (ICs)
         print(data.post.state) # character's post-frame action state
 
+**Event-driven API**::
+
+    >>> from slippi.parse import parse
+    >>> from slippi.event import ParseEvent
+    >>> handlers = {ParseEvent.METADATA: print}
+    >>> parse('test/replays/game.slp', handlers)
+    Metadata(date=2018-06-22 07:52:59+00:00, duration=5209, platform=Platform.DOLPHIN, players=(Player(characters={InGameCharacter.MARTH: 5209}), Player(characters={InGameCharacter.FOX: 5209}), None, None))
+
 API Docs
 ========
 

@@ -16,7 +16,7 @@ help:
 .PHONY: help Makefile
 
 clean:
-	rm source _build -rf
+	rm -rf source _build
 
 source:
 	@$(SPHINXAPIDOC) -o source ../slippi

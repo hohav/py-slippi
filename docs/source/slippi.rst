@@ -28,6 +28,22 @@ slippi.id module
     :undoc-members:
     :show-inheritance:
 
+slippi.metadata module
+----------------------
+
+.. automodule:: slippi.metadata
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+slippi.parse module
+-------------------
+
+.. automodule:: slippi.parse
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 slippi.util module
 ------------------
 

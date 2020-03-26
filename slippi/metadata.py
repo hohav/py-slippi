@@ -13,8 +13,8 @@ class Metadata(Base):
         self.duration = duration #: :py:class:`int`: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
         self.players = players #: tuple(optional(:py:class:`Player`)): Player metadata by port (port 1 is at index 0; empty ports will contain None)
-        self.console_nick = console_nick #: py:class:`str`: Name of the console the game was played on
-        self.json = json
+        self.console_nick = console_nick #: :py:class:`str`: Name of the console the game was played on
+        self.json = json #: :py:class `dict`: Copy of json metadata for forwards compatibility with replays
 
     @classmethod
     def _parse(cls, json):
@@ -25,10 +25,12 @@ class Metadata(Base):
         try: duration = 1 + json['lastFrame'] - evt.FIRST_FRAME_INDEX
         except KeyError: duration = None
         platform = cls.Platform(json['playedOn'])
-        console_nick = json['consoleNick']
+        console_nick = None
+        try: console_nick = json['consoleNick']
+        except KeyError: pass
         players = [None, None, None, None]
         for i in PORTS:
-            try: players[i] = cls.Player._parse(json['players'][str(i)]['characters'])
+            try: players[i] = cls.Player._parse(json['players'][str(i)])
             except KeyError: pass
         return cls(date=date, duration=duration, platform=platform, players=tuple(players), console_nick=console_nick, json=json)
 
@@ -39,15 +41,19 @@ class Metadata(Base):
 
 
     class Player(Base):
-        def __init__(self, characters):
+        def __init__(self, characters, name):
             self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, :py:class:`int`): Character(s) used, with usage duration in frames (for Zelda/Sheik)
+            self.name = name #: :py:class `str`: Netplay name of player if played on dolphin, otherwise empty string 
 
         @classmethod
         def _parse(cls, json):
             characters = {}
-            for char_id, duration in json.items():
+            name = ""
+            for char_id, duration in json['characters'].items():
                 characters[id.InGameCharacter(int(char_id))] = duration
-            return cls(characters)
+            try: name = json['names']['netplay']
+            except KeyError: pass
+            return cls(characters, name)
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):

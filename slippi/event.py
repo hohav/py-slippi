@@ -144,14 +144,14 @@ class Start(Base):
 
 
     class Player(Base):
-        def __init__(self, character, type, stocks, costume, team, ucf = None, tag = ""):
+        def __init__(self, character, type, stocks, costume, team, ucf = None, tag = None):
             self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
             self.type = type #: :py:class:`Type`: Player type (human/cpu)
             self.stocks = stocks #: int: Starting stock count
             self.costume = costume #: int: Costume ID
             self.team = team #: :py:class:`Team` | None: Team, if this was a teams game
             self.ucf = ucf or self.UCF() #: :py:class:`UCF`: UCF feature toggles
-            self.tag = tag #: str: Name tag
+            self.tag = tag #: str | None: Name tag
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):

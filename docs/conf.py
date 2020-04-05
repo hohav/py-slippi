@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'py-slippi'
 author = 'melkor'
 
-version = '1.4.0'
-release = '1.4.0'
+version = '1.4.1'
+release = '1.4.1'
 
 
 # -- General configuration ---------------------------------------------------

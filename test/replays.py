@@ -148,6 +148,12 @@ class TestGame(unittest.TestCase):
         game = self._game('nintendont')
         self.assertEqual(game.metadata.platform, Metadata.Platform.NINTENDONT)
 
+    def test_netplay_name(self):
+        game = self._game('netplay_name')
+        players = game.metadata.players
+        self.assertEqual(players[0].netplay_name, 'Player1')
+        self.assertEqual(players[1].netplay_name, 'metonym')
+
     def test_v2(self):
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))

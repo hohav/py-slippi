@@ -154,6 +154,10 @@ class TestGame(unittest.TestCase):
         self.assertEqual(players[0].netplay_name, 'Player1')
         self.assertEqual(players[1].netplay_name, 'metonym')
 
+    def test_console_name(self):
+        game = self._game('console_name')
+        self.assertEqual(game.metadata.console_name, 'Station 1')
+
     def test_v2(self):
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))

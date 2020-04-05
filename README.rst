@@ -41,6 +41,8 @@ Usage
     >>> parse('test/replays/game.slp', handlers)
     Metadata(date=2018-06-22 07:52:59+00:00, duration=5209, platform=Platform.DOLPHIN, players=(Player(characters={InGameCharacter.MARTH: 5209}), Player(characters={InGameCharacter.FOX: 5209}), None, None))
 
+👉 You can pass a stream to :code:`parse`, such as :code:`sys.stdin.buffer`! This is useful for e.g. decompressing with :code:`gunzip`, or reading from an in-progress replay via :code:`tail -c+1 -f`.
+
 API Docs
 ========
 

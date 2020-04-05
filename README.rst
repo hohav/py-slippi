@@ -19,7 +19,7 @@ See the `Module Index <https://py-slippi.readthedocs.io/en/latest/py-modindex.ht
 Usage
 =====
 
-py-slippi supports both event-based and object-based parsing. Object-based parsing is generally easier, but event-based parsing is more efficient and supports reading in-progress games, e.g. for in-progress games.
+py-slippi supports both event-based and object-based parsing. Object-based parsing is generally easier, but event-based parsing is more efficient and supports reading partial or in-progress games.
 
 **Object-based parsing**::
 

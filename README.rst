@@ -11,6 +11,11 @@ Installation
 
     pip install py-slippi
 
+API Docs
+========
+
+See the `Module Index <https://py-slippi.readthedocs.io/en/latest/py-modindex.html>`_ for detailed API docs, starting with `slippi.game <https://py-slippi.readthedocs.io/en/latest/source/slippi.html#module-slippi.game>`_.
+
 Usage
 =====
 
@@ -95,8 +100,3 @@ Frame data is elided when you print games, but you can inspect a sample frame wi
             None))
 
 👉 You can pass a stream to :code:`parse`, such as :code:`sys.stdin.buffer`! This is useful for e.g. decompressing with :code:`gunzip`, or reading from an in-progress replay via :code:`tail -c+1 -f`.
-
-API Docs
-========
-
-See the `Module Index <https://py-slippi.readthedocs.io/en/latest/py-modindex.html>`_ for detailed API docs, starting with `slippi.game <https://py-slippi.readthedocs.io/en/latest/source/slippi.html#module-slippi.game>`_.

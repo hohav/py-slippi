@@ -7,13 +7,13 @@ from slippi.util import *
 
 
 class Metadata(Base):
-    """Miscellaneous data relevant to the game but not directly provided by Melee."""
+    """Miscellaneous data not directly provided by Melee."""
     def __init__(self, date, duration, platform, players, console_name=None):
-        self.date = date #: :py:class:`datetime`: Game start date & time
-        self.duration = duration #: :py:class:`int`: Duration of game, in frames
+        self.date = date #: datetime: Game start date & time
+        self.duration = duration #: int: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
-        self.players = players #: tuple(optional(:py:class:`Player`)): Player metadata by port (port 1 is at index 0; empty ports will contain None)
-        self.console_name = console_name #: optional(:py:class:`str`): Name of the console the game was played on, None if not present
+        self.players = players #: tuple(:py:class:`Player` | None): Player metadata by port (port 1 is at index 0; empty ports will contain None)
+        self.console_name = console_name #: str | None: Name of the console the game was played on, if any
 
     @classmethod
     def _parse(cls, json):
@@ -40,8 +40,8 @@ class Metadata(Base):
 
     class Player(Base):
         def __init__(self, characters, netplay_name=None):
-            self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, :py:class:`int`): Character(s) used, with usage duration in frames (for Zelda/Sheik)
-            self.netplay_name = netplay_name #: optional(:py:class:`str`): Netplay name of player if played on dolphin, None if not present
+            self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
+            self.netplay_name = netplay_name #: str | None: Netplay name of player (Dolphin-only)
 
         @classmethod
         def _parse(cls, json):

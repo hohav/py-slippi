@@ -21,24 +21,24 @@ class EventType(IntEnum):
 class ParseEvent(Enum):
     """Parser events, used as keys for event handlers. Docstrings indicate the type of object that will be passed to each handler."""
 
-    METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`
-    METADATA_RAW = 'metadata_raw' #: :py:class:`dict`
-    START = 'start' #: :py:class:`Start`
-    FRAME = 'frame' #: :py:class:`Frame`
-    END = 'end' # :py:class:`End`
+    METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`:
+    METADATA_RAW = 'metadata_raw' #: dict:
+    START = 'start' #: :py:class:`Start`:
+    FRAME = 'frame' #: :py:class:`Frame`:
+    END = 'end' #: :py:class:`End`:
 
 
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
     def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal = None, is_frozen_ps = None):
-        self.is_teams = is_teams #: :py:class:`bool`: True if this was a teams game
-        self.players = players #: tuple(optional(:py:class:`Player`)): Players in this game by port (port 1 is at index 0; empty ports will contain None)
-        self.random_seed = random_seed #: :py:class:`int`: Random seed before the game start
+        self.is_teams = is_teams #: bool: True if this was a teams game
+        self.players = players #: tuple(:py:class:`Player` | None): Players in this game by port (port 1 is at index 0; empty ports will contain None)
+        self.random_seed = random_seed #: int: Random seed before the game start
         self.slippi = slippi #: :py:class:`Slippi`: Information about the Slippi recorder that generated this replay
         self.stage = stage #: :py:class:`slippi.id.Stage`: Stage on which this game was played
-        self.is_pal = is_pal #: :py:class:`optional(bool)`: True if this was a PAL version of Melee (added: 1.5.0)
-        self.is_frozen_ps = is_frozen_ps #: :py:class:`optional(bool)`: True if frozen Pokemon Stadium was enabled (added: 2.0.0)
+        self.is_pal = is_pal #: bool | None: `added(1.5.0)` True if this was a PAL version of Melee
+        self.is_frozen_ps = is_frozen_ps #: bool | None: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
 
     @classmethod
     def _parse(cls, stream):
@@ -75,7 +75,7 @@ class Start(Base):
         stream.read(72)
         (random_seed,) = unpack('L', stream)
 
-        try: # added: 1.0.0
+        try: # v1.0.0
             for i in PORTS:
                 (dash_back, shield_drop) = unpack('LL', stream)
                 dash_back = cls.Player.UCF.DashBack(dash_back)
@@ -84,7 +84,7 @@ class Start(Base):
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
         except EofException: pass
 
-        try: # added: 1.3.0
+        try: # v1.3.0
             for i in PORTS:
                 tag_bytes = stream.read(16)
                 if players[i]:
@@ -95,11 +95,11 @@ class Start(Base):
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
         except EofException: pass
 
-        # added: 1.5.0
+        # v1.5.0
         try: (is_pal,) = unpack('?', stream)
         except EofException: is_pal = None
 
-        # added: 2.0.0
+        # v2.0.0
         try: (is_frozen_ps,) = unpack('?', stream)
         except EofException: is_frozen_ps = None
 
@@ -129,9 +129,9 @@ class Start(Base):
 
         class Version(Base):
             def __init__(self, major, minor, revision, build = None):
-                self.major = major #: :py:class:`int`:
-                self.minor = minor #: :py:class:`int`:
-                self.revision = revision #: :py:class:`int`:
+                self.major = major #: int:
+                self.minor = minor #: int:
+                self.revision = revision #: int:
                 # build was obsoleted in 2.0.0, and never held a nonzero value
 
             def __repr__(self):
@@ -147,11 +147,11 @@ class Start(Base):
         def __init__(self, character, type, stocks, costume, team, ucf = None, tag = ""):
             self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
             self.type = type #: :py:class:`Type`: Player type (human/cpu)
-            self.stocks = stocks #: :py:class:`int`: Starting stock count
-            self.costume = costume #: :py:class:`int`: Costume ID
-            self.team = team #: optional(:py:class:`Team`): Team, if this was a teams game
+            self.stocks = stocks #: int: Starting stock count
+            self.costume = costume #: int: Costume ID
+            self.team = team #: :py:class:`Team` | None: Team, if this was a teams game
             self.ucf = ucf or self.UCF() #: :py:class:`UCF`: UCF feature toggles
-            self.tag = tag #: :py:class:`str`: Name tag
+            self.tag = tag #: str: Name tag
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):
@@ -197,13 +197,13 @@ class End(Base):
     """Information about the end of the game."""
 
     def __init__(self, method, lras_initiator = None):
-        self.method = method #: :py:class:`Method`: How the game ended (changed: 2.0.0)
-        self.lras_initiator = lras_initiator #: :py:class:`optional(int)`: index of player that LRAS'd, if any (added: 2.0.0)
+        self.method = method #: :py:class:`Method`: `changed(2.0.0)` How the game ended
+        self.lras_initiator = lras_initiator #: int | None: `added(2.0.0)` Index of player that LRAS'd, if any
 
     @classmethod
     def _parse(cls, stream):
         (method,) = unpack('B', stream)
-        try: # added: 2.0.0
+        try: # v2.0.0
             (lras,) = unpack('B', stream)
             lras_initiator = lras if lras < len(PORTS) else None
         except EofException:
@@ -217,11 +217,11 @@ class End(Base):
 
 
     class Method(IntEnum):
-        INCONCLUSIVE = 0 # obsoleted: 2.0.0
-        TIME = 1 # added: 2.0.0
-        GAME = 2 # added: 2.0.0
-        CONCLUSIVE = 3 # obsoleted: 2.0.0
-        NO_CONTEST = 7 # added: 2.0.0
+        INCONCLUSIVE = 0 # `obsoleted(2.0.0)`
+        TIME = 1 # `added(2.0.0)`
+        GAME = 2 # `added(2.0.0)`
+        CONCLUSIVE = 3 # `obsoleted(2.0.0)`
+        NO_CONTEST = 7 # `added(2.0.0)`
 
 
 class Frame(Base):
@@ -232,7 +232,7 @@ class Frame(Base):
     def __init__(self, index):
         self.index = index
         self.ports = [None, None, None, None]
-        """tuple(optional(:py:class:`Port`)): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
+        """tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
 
     def _finalize(self):
         self.ports = tuple(self.ports)
@@ -245,7 +245,7 @@ class Frame(Base):
 
         def __init__(self):
             self.leader = self.Data() #: :py:class:`Data`: Frame data for the controlled character
-            self.follower = None #: optional(:py:class:`Data`): Frame data for the follower (Nana), if any
+            self.follower = None #: :py:class:`Data` | None: Frame data for the follower (Nana), if any
 
 
         class Data(Base):
@@ -280,24 +280,24 @@ class Frame(Base):
                 def __init__(self, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
-                    # added: 1.2.0
+                    # v1.2.0
                     try: raw_analog_x = unpack('B', stream)
                     except EofException: raw_analog_x = None
 
-                    # added: 1.4.0
+                    # v1.4.0
                     try: damage = unpack('f', stream)
                     except EofException: damage = None
 
-                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
+                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
                     self.joystick = Position(joystick_x, joystick_y) #: :py:class:`Position`: Processed analog joystick position
                     self.cstick = Position(cstick_x, cstick_y) #: :py:class:`Position`: Processed analog c-stick position
                     self.triggers = Triggers(trigger_logical, trigger_physical_l, trigger_physical_r) #: :py:class:`Triggers`: Trigger state
                     self.buttons = Buttons(buttons_logical, buttons_physical) #: :py:class:`Buttons`: Button state
-                    self.random_seed = random_seed #: :py:class:`int`: Random seed at this point
-                    self.raw_analog_x = raw_analog_x #: :py:class:`optional(int)`: Raw x analog controller input (for UCF) (added: 1.2.0)
-                    self.damage = damage #: :py:class:`optional(float)`: Current damage percent (added: 1.4.0)
+                    self.random_seed = random_seed #: int: Random seed at this point
+                    self.raw_analog_x = raw_analog_x #: int | None: `added(1.2.0)` Raw x analog controller input (for UCF)
+                    self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
 
 
             class Post(Base):
@@ -308,11 +308,11 @@ class Frame(Base):
                 def __init__(self, stream):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
 
-                    # added: 0.2.0
+                    # v0.2.0
                     try: (state_age,) = unpack('f', stream)
                     except EofException: state_age = None
 
-                    try: # added: 2.0.0
+                    try: # v2.0.0
                         flags = unpack('5B', stream)
                         (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
                         flags = StateFlags(reduce(lambda x, y: x + y[1] * 2**(8*y[0]), enumerate(flags), 0))
@@ -323,22 +323,22 @@ class Frame(Base):
                         (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
 
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
-                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state (useful for stats)
-                    self.state_age = state_age #: :py:class:`optional(float)`: Number of frames action state has been active. Can have a fractional component for certain actions
+                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state
+                    self.state_age = state_age #: float | None: Number of frames action state has been active. Can have a fractional component for certain actions
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
                     self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
-                    self.damage = damage #: :py:class:`float`: Current damage percent
-                    self.shield = shield #: :py:class:`float`: Current size of shield
-                    self.stocks = stocks #: :py:class:`int`: Number of stocks remaining
-                    self.last_attack_landed = try_enum(Attack, last_attack_landed) if last_attack_landed else None #: optional(:py:class:`Attack` | int): Last attack that this character landed
-                    self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: optional(:py:class:`int`): Port of character that last hit this character
-                    self.combo_count = combo_count #: :py:class:`int`: Combo count as defined by the game
-                    self.flags = flags #: :py:class:`optional(StateFlags)`: State flags (added: 2.0.0)
-                    self.hit_stun = hit_stun #: :py:class:`optional(float)`: Number of hitstun frames remaining (added: 2.0.0)
-                    self.airborne = airborne #: :py:class:`optional(bool)`: True if character is airborne (added: 2.0.0)
-                    self.ground = ground #: :py:class:`optional(int)`: ID of ground character is standing on, if any (added: 2.0.0)
-                    self.jumps = jumps #: :py:class:`optional(int)`: Jumps remaining (added: 2.0.0)
-                    self.l_cancel = l_cancel #: :py:class:`optional(LCancel)`: L-cancel status, if any (added: 2.0.0)
+                    self.damage = damage #: float: Current damage percent
+                    self.shield = shield #: float: Current size of shield
+                    self.stocks = stocks #: int: Number of stocks remaining
+                    self.last_attack_landed = try_enum(Attack, last_attack_landed) if last_attack_landed else None #: :py:class:`Attack` | int | None: Last attack that this character landed
+                    self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: int | None: Port of character that last hit this character
+                    self.combo_count = combo_count #: int: Combo count as defined by the game
+                    self.flags = flags #: :py:class:`StateFlags` | None: `added(2.0.0)` State flags
+                    self.hit_stun = hit_stun #: float | None: `added(2.0.0)` Number of hitstun frames remaining
+                    self.airborne = airborne #: bool | None: `added(2.0.0)` True if character is airborne
+                    self.ground = ground #: int | None: `added(2.0.0)` ID of ground character is standing on, if any
+                    self.jumps = jumps #: int | None: `added(2.0.0)` Jumps remaining
+                    self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
 
 
     # This class is only used temporarily while parsing frame data.
@@ -421,7 +421,7 @@ class Triggers(Base):
     __slots__ = 'logical', 'physical'
 
     def __init__(self, logical, physical_x, physical_y):
-        self.logical = logical #: :py:class:`float`: Processed analog trigger position
+        self.logical = logical #: float: Processed analog trigger position
         self.physical = self.Physical(physical_x, physical_y) #: :py:class:`Physical`: physical analog trigger positions (useful for APM)
 
     def __eq__(self, other):

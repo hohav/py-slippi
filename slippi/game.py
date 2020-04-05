@@ -13,13 +13,13 @@ class Game(Base):
         """:py:class:`slippi.event.Start`: Information about the start of the game"""
 
         self.frames = []
-        """list(:py:class:`slippi.event.Frame`): Every frame of the game, indexed by frame number (omits frames that occur before the timer starts)"""
+        """list(:py:class:`slippi.event.Frame`): Every frame of the game, indexed by frame number"""
 
         self.end = None
         """:py:class:`slippi.event.End`: Information about the end of the game"""
 
         self.metadata = None
-        """:py:class:`slippi.metadata.Metadata`: Miscellaneous data relevant to the game but not directly provided by Melee"""
+        """:py:class:`slippi.metadata.Metadata`: Miscellaneous data not directly provided by Melee"""
 
         self._metadata_raw = None
         """dict: Raw JSON metadata, for debugging and forward-compatibility"""

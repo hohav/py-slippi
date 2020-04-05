@@ -22,6 +22,7 @@ class ParseEvent(Enum):
     """Parser events, used as keys for event handlers. Docstrings indicate the type of object that will be passed to each handler."""
 
     METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`
+    METADATA_RAW = 'metadata_raw' #: :py:class:`dict`
     START = 'start' #: :py:class:`Start`
     FRAME = 'frame' #: :py:class:`Frame`
     END = 'end' # :py:class:`End`

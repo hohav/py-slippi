@@ -111,10 +111,17 @@ def _parse(stream, handlers):
     _parse_events(stream, payload_sizes, handlers)
 
     expect_bytes(b'U\x08metadata', stream)
-    metadata = Metadata._parse(ubjson.load(stream))
+
+    json = ubjson.load(stream)
+    raw_handler = handlers.get(ParseEvent.METADATA_RAW)
+    if raw_handler:
+        raw_handler(json)
+
+    metadata = Metadata._parse(json)
     handler = handlers.get(ParseEvent.METADATA)
     if handler:
         handler(metadata)
+
     expect_bytes(b'}', stream)
 
 

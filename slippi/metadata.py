@@ -8,13 +8,12 @@ from slippi.util import *
 
 class Metadata(Base):
     """Miscellaneous data relevant to the game but not directly provided by Melee."""
-    def __init__(self, date, duration, platform, players, _json, console_name=None):
+    def __init__(self, date, duration, platform, players, console_name=None):
         self.date = date #: :py:class:`datetime`: Game start date & time
         self.duration = duration #: :py:class:`int`: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
         self.players = players #: tuple(optional(:py:class:`Player`)): Player metadata by port (port 1 is at index 0; empty ports will contain None)
         self.console_name = console_name #: optional(:py:class:`str`): Name of the console the game was played on, None if not present
-        self._json = _json #: :py:class:`dict`: Copy of json metadata for forwards compatibility with replays
 
     @classmethod
     def _parse(cls, json):
@@ -31,7 +30,7 @@ class Metadata(Base):
         for i in PORTS:
             try: players[i] = cls.Player._parse(json['players'][str(i)])
             except KeyError: pass
-        return cls(date=date, duration=duration, platform=platform, players=tuple(players), _json=json, console_name=console_name)
+        return cls(date=date, duration=duration, platform=platform, players=tuple(players), console_name=console_name)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

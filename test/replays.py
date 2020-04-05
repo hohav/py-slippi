@@ -158,6 +158,16 @@ class TestGame(unittest.TestCase):
         game = self._game('console_name')
         self.assertEqual(game.metadata.console_name, 'Station 1')
 
+    def test_metadata_json(self):
+        game = self._game('game')
+        self.assertEqual(game._metadata_raw, {
+            'lastFrame': 5085,
+            'playedOn': 'dolphin',
+            'players': {
+                '0': {'characters': {'18': 5209}},
+                '1': {'characters': {'1': 5209}}},
+            'startAt': '2018-06-22T07:52:59Z'})
+
     def test_v2(self):
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))

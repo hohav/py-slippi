@@ -1,4 +1,4 @@
-import enum, inspect, struct, sys, termcolor, warnings
+import enum, re, struct, sys, termcolor, warnings
 
 
 PORTS = range(4)
@@ -8,14 +8,27 @@ warnings.formatwarning = lambda msg, *args, **kwargs: '%s %s\n' % (termcolor.col
 warn = warnings.warn
 
 
-def _attrs(obj):
-    attrs = ((attr, obj.__getattribute__(attr)) for attr in dir(obj)
-             if not attr.startswith('_'))
-    return (a for a in attrs if not inspect.isclass(a[1]))
+def _indent(s):
+    return re.sub(r'^', '    ', s, flags=re.MULTILINE)
+
+
+def _format_collection(coll, delim_open, delim_close):
+    elements = [_indent(_format(x)) for x in coll]
+    if '\n' in elements[0]:
+        return delim_open + '\n' + ',\n'.join(elements) + delim_close
+    else:
+        return delim_open + ', '.join(elements) + delim_close
 
 
 def _format(obj):
-    return '%.02f' % obj if isinstance(obj, float) else obj
+    if isinstance(obj, float):
+        return '%.02f' % obj
+    elif isinstance(obj, tuple):
+        return _format_collection(obj, '(', ')')
+    elif isinstance(obj, list):
+        return _format_collection(obj, '[', ']')
+    else:
+        return '%s' % (obj,)
 
 
 def try_enum(enum, val):
@@ -44,9 +57,19 @@ def expect_bytes(expected_bytes, stream):
 class Base:
     __slots__ = []
 
+    def _attr_repr(self, attr):
+        return attr + '=' + _format(getattr(self, attr))
+
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__,
-          ', '.join('%s=%s' % (k, _format(v)) for k,v in _attrs(self)))
+        attrs = []
+        for attr in dir(self):
+            # uppercase names are nested classes
+            if not (attr.startswith('_') or attr[0].isupper()):
+                s = self._attr_repr(attr)
+                if s:
+                    attrs.append(_indent(s))
+
+        return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join(attrs))
 
 
 class Enum(enum.Enum):

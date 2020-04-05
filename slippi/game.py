@@ -21,7 +21,7 @@ class Game(Base):
         self.metadata = None
         """:py:class:`slippi.metadata.Metadata`: Miscellaneous data not directly provided by Melee"""
 
-        self._metadata_raw = None
+        self.metadata_raw = None
         """dict: Raw JSON metadata, for debugging and forward-compatibility"""
 
         handlers = {
@@ -29,10 +29,14 @@ class Game(Base):
             ParseEvent.FRAME: lambda x: self.frames.append(x),
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
-            ParseEvent.METADATA_RAW: lambda x: setattr(self, '_metadata_raw', x)}
+            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}
 
         parse(input, handlers)
 
-    def __repr__(self):
-        return '%s(metadata=%s, start=%s, end=%s, frames=[...])' % \
-            (self.__class__.__name__, self.metadata, self.start, self.end)
+    def _attr_repr(self, attr):
+        if attr == 'frames':
+            return 'frames=[...](%d)' % len(self.frames)
+        elif attr != 'metadata_raw':
+            return super()._attr_repr(attr)
+        else:
+            return None

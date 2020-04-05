@@ -160,7 +160,7 @@ class TestGame(unittest.TestCase):
 
     def test_metadata_json(self):
         game = self._game('game')
-        self.assertEqual(game._metadata_raw, {
+        self.assertEqual(game.metadata_raw, {
             'lastFrame': 5085,
             'playedOn': 'dolphin',
             'players': {

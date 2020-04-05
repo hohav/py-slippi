@@ -21,7 +21,7 @@ Usage
 
 py-slippi supports both event-based and object-based parsing. Object-based parsing is generally easier, but event-based parsing is more efficient and supports reading in-progress games, e.g. for in-progress games.
 
-**Event-based parsing**::
+**Object-based parsing**::
 
     >>> from slippi import Game
     >>> Game('test/replays/game.slp')

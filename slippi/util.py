@@ -13,9 +13,9 @@ def _indent(s):
 
 
 def _format_collection(coll, delim_open, delim_close):
-    elements = [_indent(_format(x)) for x in coll]
+    elements = [_format(x) for x in coll]
     if '\n' in elements[0]:
-        return delim_open + '\n' + ',\n'.join(elements) + delim_close
+        return delim_open + '\n' + ',\n'.join(_indent(e) for e in elements) + delim_close
     else:
         return delim_open + ', '.join(elements) + delim_close
 

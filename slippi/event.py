@@ -1,5 +1,3 @@
-from functools import reduce
-
 from slippi.util import *
 from slippi.id import *
 
@@ -315,7 +313,11 @@ class Frame(Base):
                     try: # v2.0.0
                         flags = unpack('5B', stream)
                         (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
-                        flags = StateFlags(reduce(lambda x, y: x + y[1] * 2**(8*y[0]), enumerate(flags), 0))
+                        flags = StateFlags(flags[0] +
+                                           flags[1] * 2**8 +
+                                           flags[2] * 2**16 +
+                                           flags[3] * 2**24 +
+                                           flags[4] * 2**32)
                         ground = maybe_ground if not airborne else None
                         hit_stun = misc_as if flags.HIT_STUN else None
                         l_cancel = LCancel(l_cancel) if l_cancel else None

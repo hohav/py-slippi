@@ -68,6 +68,9 @@ def _parse_events(stream, payload_sizes, handlers):
             done = True
         elif isinstance(event, Frame.Event):
             if current_frame and current_frame.index != event.id.frame:
+                if current_frame.index > event.id.frame:
+                    warn(f'out-of-order-frame: {current_frame.index} -> {event.id.frame}')
+
                 current_frame._finalize()
                 handler = handlers.get(ParseEvent.FRAME)
                 if handler:

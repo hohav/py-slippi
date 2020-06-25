@@ -24,18 +24,31 @@ class Game(Base):
         self.metadata_raw = None
         """dict: Raw JSON metadata, for debugging and forward-compatibility"""
 
+        self.frame_starts = []
+        """list(:py:class:`slippi.event.FrameStart`): Every frame start of the game, indexed by frame number"""
+
+        self.item_updates = []
+        """list(:py:class:`slippi.event.ItemUpdate`): Every item update of the game, indexed by frame number and spawn id"""
+
+        self.frame_bookends = []
+        """list(:py:class:`slippi.event.FrameBookend`): Every frame bookend of the game, indexed by frame number"""
+
         handlers = {
             ParseEvent.START: lambda x: setattr(self, 'start', x),
             ParseEvent.FRAME: lambda x: self.frames.append(x),
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
-            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}
+            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x),
+            ParseEvent.FRAME_START: lambda x: self.frame_starts.append(x),
+            ParseEvent.ITEM_UPDATE: lambda x: self.item_updates.append(x),
+            ParseEvent.FRAME_BOOKEND: lambda x: self.frame_bookends.append(x)}
 
         parse(input, handlers)
 
     def _attr_repr(self, attr):
-        if attr == 'frames':
-            return 'frames=[...](%d)' % len(self.frames)
+        self_attr = getattr(self, attr)
+        if isinstance(self_attr, list):
+            return '%s=[...](%d)' % (attr, len(self_attr))
         elif attr != 'metadata_raw':
             return super()._attr_repr(attr)
         else:

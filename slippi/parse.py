@@ -1,6 +1,6 @@
 import io, ubjson
 
-from slippi.event import EventType, ParseEvent, Start, End, Frame
+from slippi.event import EventType, ParseEvent, Start, End, Frame, FrameStart, ItemUpdate, FrameBookend
 from slippi.metadata import Metadata
 from slippi.util import *
 
@@ -44,6 +44,12 @@ def _parse_event(event_stream, payload_sizes):
                             stream)
     elif event_type is EventType.GAME_END:
         event = End._parse(stream)
+    elif event_type is EventType.FRAME_START:
+        event = FrameStart._parse(stream)
+    elif event_type is EventType.ITEM_UPDATE:
+        event = ItemUpdate._parse(stream)
+    elif event_type is EventType.FRAME_BOOKEND:
+        event = FrameBookend._parse(stream)
     else:
         warn('unknown event code: 0x%02x' % code)
         event = None
@@ -98,6 +104,18 @@ def _parse_events(stream, payload_sizes, handlers):
                 data._post = event.data
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
+        elif isinstance(event, FrameStart):
+            handler = handlers.get(ParseEvent.FRAME_START)
+            if handler:
+                handler(event)
+        elif isinstance(event, ItemUpdate):
+            handler = handlers.get(ParseEvent.ITEM_UPDATE)
+            if handler:
+                handler(event)
+        elif isinstance(event, FrameBookend):
+            handler = handlers.get(ParseEvent.FRAME_BOOKEND)
+            if handler:
+                handler(event)
 
     if current_frame:
         current_frame._finalize()

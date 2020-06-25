@@ -14,6 +14,9 @@ class EventType(IntEnum):
     FRAME_PRE = 0x37
     FRAME_POST = 0x38
     GAME_END = 0x39
+    FRAME_START = 0x3A
+    ITEM_UPDATE = 0x3B
+    FRAME_BOOKEND = 0x3C
 
 
 class ParseEvent(Enum):
@@ -24,6 +27,9 @@ class ParseEvent(Enum):
     START = 'start' #: :py:class:`Start`:
     FRAME = 'frame' #: :py:class:`Frame`:
     END = 'end' #: :py:class:`End`:
+    FRAME_START = 'frame_start' #: :py:class:`FrameStart`:
+    ITEM_UPDATE = 'item_update' #: :py:class:`ItemUpdate`:
+    FRAME_BOOKEND = 'frame_bookend' #: :py:class:`FrameBookend`:
 
 
 class Start(Base):
@@ -365,6 +371,80 @@ class Frame(Base):
             POST = 'post'
 
 
+class FrameStart(Base):
+    """Frame and random seed information."""
+
+    __slots__ = 'frame_number', 'random_seed'
+
+    def __init__(self, frame_number, random_seed):
+        self.frame_number = frame_number #: int `added(2.2.0)` The number of the frame
+        self.random_seed = random_seed #: int: `added(2.2.0)` The random seed at the start of the frame
+
+    @classmethod
+    def _parse(cls, stream):
+        (frame_number, random_seed) = unpack('iI', stream)
+        return cls(frame_number, random_seed)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return (self.frame_number == other.frame_number) and (self.random_seed == other.random_seed)
+
+
+class ItemUpdate(Base):
+    """Information about 15 or fewer specific items"""
+
+    __slots__ = 'frame_number', 'type_id', 'state', 'direction', 'x_vel', 'y_vel', 'x_pos', 'y_pos', 'damage', 'timer', 'spawn_id'
+
+    def __init__(self, frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id):
+        self.frame_number = frame_number #: int: `added(3.0.0)` The number of the frame
+        self.type_id = try_enum(Item, type_id) #: :py:class:`slippi.id.Item` | int: `added(3.0.0)` Type of item
+        self.state = state #: int: `added(3.0.0)` The item's state
+        self.direction = Direction(direction) #: :py:class:`Direction`: `added(3.0.0)` Direction the character is facing
+        self.velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: `added(3.0.0)` Character's velocity
+        self.position = Position(x_pos, y_pos) #: :py:class:`Position`: `added(3.0.0)` Character's position
+        self.damage = damage #: int: `added(3.0.0)` Amount of damage item has taken
+        self.timer = timer #: int: `added(3.0.0)` Number of frames before item expires
+        self.spawn_id = spawn_id #: int int: `added(3.0.0)` Number representing item
+
+    @classmethod
+    def _parse(cls, stream):
+        (frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('iHB5fHfI', stream)
+        return cls(frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return ((self.frame_number == other.frame_number)
+            and (self.type_id == other.type_id)
+            and (self.state == other.state)
+            and (self.direction == other.direction)
+            and (self.velocity == other.velocity)
+            and (self.position == other.position)
+            and (self.damage == other.damage)
+            and (self.timer == other.timer)
+            and (self.spawn_id == other.spawn_id))
+
+
+class FrameBookend(Base):
+    """Marks the end of a frame."""
+
+    __slots__ = 'frame_number'
+
+    def __init__(self, frame_number):
+        self.frame_number = frame_number #: int | None: `added(3.0.0)` The number of the frame
+
+    @classmethod
+    def _parse(cls, stream):
+        (frame_number,) = unpack('i', stream)
+        return cls(frame_number)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.frame_number == other.frame_number
+
+
 class Position(Base):
     __slots__ = 'x', 'y'
 
@@ -376,6 +456,22 @@ class Position(Base):
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.x == other.x and self.y == other.y
+
+    def __repr__(self):
+        return '(%.2f, %.2f)' % (self.x, self.y)
+
+
+class Velocity(Base):
+    __slots__ = 'x_vel', 'y_vel'
+
+    def __init__(self, x_vel, y_vel):
+        self.x = x_vel
+        self.y = y_vel
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.x_vel == other.x_vel and self.y_vel == other.y_vel
 
     def __repr__(self):
         return '(%.2f, %.2f)' % (self.x, self.y)

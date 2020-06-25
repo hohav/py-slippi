@@ -33,9 +33,10 @@ class Game(Base):
         parse(input, handlers)
 
     def _attr_repr(self, attr):
-        if attr == 'frames':
-            return 'frames=[...](%d)' % len(self.frames)
-        elif attr != 'metadata_raw':
-            return super()._attr_repr(attr)
-        else:
+        self_attr = getattr(self, attr)
+        if isinstance(self_attr, list):
+            return '%s=[...](%d)' % (attr, len(self_attr))
+        elif attr == 'metadata_raw':
             return None
+        else:
+            return super()._attr_repr(attr)

@@ -1,5 +1,5 @@
+import slippi.id as sid
 from slippi.util import *
-from slippi.id import *
 
 
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
@@ -14,6 +14,9 @@ class EventType(IntEnum):
     FRAME_PRE = 0x37
     FRAME_POST = 0x38
     GAME_END = 0x39
+    FRAME_START = 0x3A
+    ITEM = 0x3B
+    FRAME_END = 0x3C
 
 
 class Start(Base):
@@ -30,14 +33,14 @@ class Start(Base):
 
     @classmethod
     def _parse(cls, stream):
-        slippi = cls.Slippi._parse(stream)
+        slippi_ = cls.Slippi._parse(stream)
 
         stream.read(8)
         (is_teams,) = unpack('?', stream)
 
         stream.read(5)
         (stage,) = unpack('H', stream)
-        stage = Stage(stage)
+        stage = sid.Stage(stage)
 
         stream.read(80)
         players = []
@@ -52,7 +55,7 @@ class Start(Base):
             except ValueError: type = None
 
             if type is not None:
-                character = CSSCharacter(character)
+                character = sid.CSSCharacter(character)
                 team = cls.Player.Team(team) if is_teams else None
                 player = cls.Player(character=character, type=type, stocks=stocks, costume=costume, team=team)
             else:
@@ -95,7 +98,7 @@ class Start(Base):
             is_teams=is_teams,
             players=tuple(players),
             random_seed=random_seed,
-            slippi=slippi,
+            slippi=slippi_,
             stage=stage,
             is_pal=is_pal,
             is_frozen_ps=is_frozen_ps)
@@ -222,15 +225,18 @@ class End(Base):
 class Frame(Base):
     """A single frame of the game. Includes data for all characters."""
 
-    __slots__ = 'index', 'ports'
+    __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     def __init__(self, index):
         self.index = index
-        self.ports = [None, None, None, None]
-        """tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
+        self.ports = [None, None, None, None] #: tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)
+        self.items = [] #: tuple(:py:class:`Item`): `added(3.0.0)` Active items (includes projectiles)
+        self.start = None #: :py:class:`Start` | None: `added(2.2.0)` Start-of-frame data
+        self.end = None #: :py:class:`End` | None: `added(2.2.0)` End-of-frame data
 
     def _finalize(self):
         self.ports = tuple(self.ports)
+        self.items = tuple(self.items)
 
 
     class Port(Base):
@@ -297,7 +303,7 @@ class Frame(Base):
                     except EOFError: damage = None
 
                     return cls(
-                        state=try_enum(ActionState, state),
+                        state=try_enum(sid.ActionState, state),
                         position=Position(position_x, position_y),
                         direction=Direction(direction),
                         joystick=Position(joystick_x, joystick_y),
@@ -356,8 +362,8 @@ class Frame(Base):
                         (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
 
                     return cls(
-                        character=InGameCharacter(character),
-                        state=try_enum(ActionState, state),
+                        character=sid.InGameCharacter(character),
+                        state=try_enum(sid.ActionState, state),
                         state_age=state_age,
                         position=Position(position_x, position_y),
                         direction=Direction(direction),
@@ -375,6 +381,76 @@ class Frame(Base):
                         l_cancel=l_cancel)
 
 
+    class Item(Base):
+        """An active item (includes projectiles)."""
+
+        __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
+
+        def __init__(self, type, state, direction, velocity, position, damage, timer, spawn_id):
+            self.type = type #: :py:class:`slippi.id.Item`: Item type
+            self.state = state #: int: Item's action state
+            self.direction = direction #: :py:class:`Direction`: Direction item is facing
+            self.velocity = velocity #: :py:class:`Velocity`: Item's velocity
+            self.position = position #: :py:class:`Position`: Item's position
+            self.damage = damage #: int: Amount of damage item has taken
+            self.timer = timer #: int: Frames remaining until item expires
+            self.spawn_id = spawn_id #: int: Unique ID per item spawned (0, 1, 2, ...)
+
+        @classmethod
+        def _parse(cls, stream):
+            (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+            return cls(
+                type=try_enum(sid.Item, type),
+                state=state,
+                direction=Direction(direction),
+                velocity=Velocity(x_vel, y_vel),
+                position=Position(x_pos, y_pos),
+                damage=damage,
+                timer=timer,
+                spawn_id=spawn_id)
+
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return NotImplemented
+            return self.type == other.type and self.state == other.state and self.direction == other.direction and self.velocity == other.velocity and self.position == other.position and self.damage == other.damage and self.timer == other.timer and self.spawn_id == other.spawn_id
+
+
+    class Start(Base):
+        """Start-of-frame data."""
+
+        __slots__ = 'random_seed'
+
+        def __init__(self, random_seed):
+            self.random_seed = random_seed
+
+        @classmethod
+        def _parse(cls, stream):
+            (random_seed,) = unpack('I', stream)
+            random_seed = random_seed #: int: The random seed at the start of the frame
+            return cls(random_seed)
+
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return NotImplemented
+            return self.random_seed == other.random_seed
+
+
+    class End(Base):
+        """End-of-frame data."""
+
+        def __init__(self):
+            pass
+
+        @classmethod
+        def _parse(cls, stream):
+            return cls()
+
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return NotImplemented
+            return True
+
+
     class Event(Base):
         """Temporary wrapper used while parsing frame data."""
 
@@ -387,18 +463,44 @@ class Frame(Base):
 
 
         class Id(Base):
-            __slots__ = 'frame', 'port', 'is_follower'
+            __slots__ = 'frame'
+
+            def __init__(self, stream):
+                (self.frame,) = unpack('i', stream)
+
+
+        class PortId(Id):
+            __slots__ = 'port', 'is_follower'
 
             def __init__(self, stream):
                 (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
 
 
         class Type(Enum):
+            START = 'start'
+            END = 'end'
             PRE = 'pre'
             POST = 'post'
+            ITEM = 'item'
 
 
 class Position(Base):
+    __slots__ = 'x', 'y'
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
+
+    def __repr__(self):
+        return '(%.2f, %.2f)' % (self.x, self.y)
+
+
+class Velocity(Base):
     __slots__ = 'x', 'y'
 
     def __init__(self, x, y):

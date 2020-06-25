@@ -13,6 +13,9 @@ class ParseEvent(Enum):
     START = 'start' #: :py:class:`Start`:
     FRAME = 'frame' #: :py:class:`Frame`:
     END = 'end' #: :py:class:`End`:
+    FRAME_START = 'frame_start' #: :py:class:`Frame.Start`:
+    ITEM = 'item' #: :py:class:`Frame.Item`:
+    FRAME_END = 'frame_end' #: :py:class:`Frame.End`:
 
 
 class ParseError(IOError):
@@ -67,12 +70,24 @@ def _parse_event(event_stream, payload_sizes):
         if event_type is EventType.GAME_START:
             event = Start._parse(stream)
         elif event_type is EventType.FRAME_PRE:
-            event = Frame.Event(Frame.Event.Id(stream),
+            event = Frame.Event(Frame.Event.PortId(stream),
                                 Frame.Event.Type.PRE,
                                 stream)
         elif event_type is EventType.FRAME_POST:
-            event = Frame.Event(Frame.Event.Id(stream),
+            event = Frame.Event(Frame.Event.PortId(stream),
                                 Frame.Event.Type.POST,
+                                stream)
+        elif event_type is EventType.FRAME_START:
+            event = Frame.Event(Frame.Event.Id(stream),
+                                Frame.Event.Type.START,
+                                stream)
+        elif event_type is EventType.ITEM:
+            event = Frame.Event(Frame.Event.Id(stream),
+                                Frame.Event.Type.ITEM,
+                                stream)
+        elif event_type is EventType.FRAME_END:
+            event = Frame.Event(Frame.Event.Id(stream),
+                                Frame.Event.Type.END,
                                 stream)
         elif event_type is EventType.GAME_END:
             event = End._parse(stream)
@@ -125,22 +140,29 @@ def _parse_events(stream, payload_sizes, handlers):
             if not current_frame:
                 current_frame = Frame(event.id.frame)
 
-            port = current_frame.ports[event.id.port]
-            if not port:
-                port = Frame.Port()
-                current_frame.ports[event.id.port] = port
+            if event.type is Frame.Event.Type.PRE or event.type is Frame.Event.Type.POST:
+                port = current_frame.ports[event.id.port]
+                if not port:
+                    port = Frame.Port()
+                    current_frame.ports[event.id.port] = port
 
-            if event.id.is_follower:
-                if port.follower is None:
-                    port.follower = Frame.Port.Data()
-                data = port.follower
-            else:
-                data = port.leader
+                if event.id.is_follower:
+                    if port.follower is None:
+                        port.follower = Frame.Port.Data()
+                    data = port.follower
+                else:
+                    data = port.leader
 
-            if event.type is Frame.Event.Type.PRE:
-                data._pre = event.data
-            elif event.type is Frame.Event.Type.POST:
-                data._post = event.data
+                if event.type is Frame.Event.Type.PRE:
+                    data._pre = event.data
+                else:
+                    data._post = event.data
+            elif event.type is Frame.Event.Type.ITEM:
+                current_frame.items.append(Frame.Item._parse(event.data))
+            elif event.type is Frame.Event.Type.START:
+                current_frame.start = Frame.Start._parse(event.data)
+            elif event.type is Frame.Event.Type.END:
+                current_frame.end = Frame.End._parse(event.data)
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
 

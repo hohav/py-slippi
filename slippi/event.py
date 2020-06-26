@@ -394,7 +394,7 @@ class FrameStart(Base):
 class ItemUpdate(Base):
     """Information about 15 or fewer specific items"""
 
-    __slots__ = 'frame_number', 'type_id', 'state', 'direction', 'x_vel', 'y_vel', 'x_pos', 'y_pos', 'damage', 'timer', 'spawn_id'
+    __slots__ = 'frame_number', 'type_id', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
 
     def __init__(self, frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id):
         self.frame_number = frame_number #: int: `added(3.0.0)` The number of the frame

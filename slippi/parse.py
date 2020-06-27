@@ -107,6 +107,9 @@ def _parse_events(stream, payload_sizes, handlers):
 
 
 def _parse(stream, handlers):
+    # For efficiency, don't send the whole file through ubjson.
+    # Instead, assume `raw` is the first element. This is brittle and
+    # ugly, but it's what the official parser does so it should be OK.
     expect_bytes(b'{U\x03raw[$U#l', stream)
     (length,) = unpack('l', stream) # currently unused
 

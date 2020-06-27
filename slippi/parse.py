@@ -67,6 +67,10 @@ def _parse_events(stream, payload_sizes, handlers):
                 handler(event)
             done = True
         elif isinstance(event, Frame.Event):
+            # Accumulate all events for a single frame into a single `Frame` object.
+
+            # We can't use Frame Bookend events to detect end-of-frame,
+            # as they don't exist before Slippi 3.0.0.
             if current_frame and current_frame.index != event.id.frame:
                 if current_frame.index > event.id.frame:
                     warn(f'out-of-order-frame: {current_frame.index} -> {event.id.frame}')

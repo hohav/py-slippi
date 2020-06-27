@@ -27,8 +27,10 @@ def _format(obj):
         return _format_collection(obj, '(', ')')
     elif isinstance(obj, list):
         return _format_collection(obj, '[', ']')
+    elif isinstance(obj, enum.Enum):
+        return repr(obj)
     else:
-        return '%s' % (obj,)
+        return str(obj)
 
 
 def try_enum(enum, val):
@@ -74,16 +76,18 @@ class Base:
 
 class Enum(enum.Enum):
     def __repr__(self):
-        return self.__class__.__name__+'.'+self._name_
+        return '%r:%s' % (self._value_, self._name_)
 
 
 class IntEnum(enum.IntEnum):
     def __repr__(self):
-        return self.__class__.__name__+'.'+self._name_
+        return '%d:%s' % (self._value_, self._name_)
 
 
 class IntFlag(enum.IntFlag):
-    pass
+    def __repr__(self):
+        members, _ = enum._decompose(self.__class__, self._value_)
+        return '%s:%s' % (bin(self._value_), '|'.join([str(m._name_ or m._value_) for m in members]))
 
 
 class EofException(Exception):

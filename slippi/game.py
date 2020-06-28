@@ -24,24 +24,12 @@ class Game(Base):
         self.metadata_raw = None
         """dict: Raw JSON metadata, for debugging and forward-compatibility"""
 
-        self.frame_starts = []
-        """list(:py:class:`slippi.event.FrameStart`): Every frame start of the game, indexed by frame number"""
-
-        self.item_updates = []
-        """list(:py:class:`slippi.event.ItemUpdate`): Every item update of the game, indexed by frame number and spawn id"""
-
-        self.frame_bookends = []
-        """list(:py:class:`slippi.event.FrameBookend`): Every frame bookend of the game, indexed by frame number"""
-
         handlers = {
             ParseEvent.START: lambda x: setattr(self, 'start', x),
             ParseEvent.FRAME: lambda x: self.frames.append(x),
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
-            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x),
-            ParseEvent.FRAME_START: lambda x: self.frame_starts.append(x),
-            ParseEvent.ITEM_UPDATE: lambda x: self.item_updates.append(x),
-            ParseEvent.FRAME_BOOKEND: lambda x: self.frame_bookends.append(x)}
+            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}
 
         parse(input, handlers)
 

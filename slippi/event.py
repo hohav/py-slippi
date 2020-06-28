@@ -231,12 +231,18 @@ class End(Base):
 class Frame(Base):
     """A single frame of the game. Includes data for all characters."""
 
-    __slots__ = 'index', 'ports'
+    __slots__ = 'index', 'ports', 'items', 'start', 'bookend'
 
     def __init__(self, index):
         self.index = index
         self.ports = [None, None, None, None]
         """tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
+        self.items = None
+        """list(:py:class:`Item` | None): `added 3.0.0` Information about 15 or fewer specific items."""
+        self.start = None
+        """:py:class:`Start` | None: `added 2.2.0` Frame and random seed information."""
+        self.bookend = None
+        """:py:class:`Bookend` | None: `added 2.2.0` Marks the end of a frame."""
 
     def _finalize(self):
         self.ports = tuple(self.ports)
@@ -349,6 +355,41 @@ class Frame(Base):
                     self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
 
 
+    class Item(Base):
+        """Information for a given item. Note that "items" such as Fox/Falco's lasers are also included."""
+
+        __slots__ = 'type_id', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
+
+        def __init__(self, stream):
+            (type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+
+            self.type_id = try_enum(Item, type_id) #: :py:class:`slippi.id.Item` | int: Type of item
+            self.state = state #: int: The item's state
+            self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
+            self.velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: Character's velocity
+            self.position = Position(x_pos, y_pos) #: :py:class:`Position`: Character's position
+            self.damage = damage #: int: Amount of damage item has taken
+            self.timer = timer #: int: Number of frames before item expires
+            self.spawn_id = spawn_id #: int: Number representing item
+
+
+    class Start(Base):
+        """Frame and random seed information."""
+
+        __slots__ = 'random_seed'
+
+        def __init__(self, stream):
+            (random_seed,) = unpack('I', stream)
+            self.random_seed = random_seed #: int: The random seed at the start of the frame
+
+
+    class Bookend(Base):
+        """Marks the end of a frame."""
+
+        def __init__(self, frame_number):
+            pass
+
+
     # This class is only used temporarily while parsing frame data.
     class Event(Base):
         __slots__ = 'id', 'type', 'data'
@@ -359,90 +400,32 @@ class Frame(Base):
             self.data = data
 
 
-        class Id(Base):
+        class PortId(Base):
             __slots__ = 'frame', 'port', 'is_follower'
 
             def __init__(self, stream):
                 (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
 
 
+        class ItemId(Base):
+            __slots__ = 'frame'
+
+            def __init__(self, stream):
+                (self.frame,) = unpack('i', stream)
+
+        class OtherId(Base):
+            __slots__ = 'frame'
+
+            def __init__(self, stream):
+                (self.frame,) = unpack('i', stream)
+
+
         class Type(Enum):
             PRE = 'pre'
             POST = 'post'
-
-
-class FrameStart(Base):
-    """Frame and random seed information."""
-
-    __slots__ = 'frame_number', 'random_seed'
-
-    def __init__(self, frame_number, random_seed):
-        self.frame_number = frame_number #: int `added(2.2.0)` The number of the frame
-        self.random_seed = random_seed #: int: `added(2.2.0)` The random seed at the start of the frame
-
-    @classmethod
-    def _parse(cls, stream):
-        (frame_number, random_seed) = unpack('iI', stream)
-        return cls(frame_number, random_seed)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return (self.frame_number == other.frame_number) and (self.random_seed == other.random_seed)
-
-
-class ItemUpdate(Base):
-    """Information about 15 or fewer specific items"""
-
-    __slots__ = 'frame_number', 'type_id', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
-
-    def __init__(self, frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id):
-        self.frame_number = frame_number #: int: `added(3.0.0)` The number of the frame
-        self.type_id = try_enum(Item, type_id) #: :py:class:`slippi.id.Item` | int: `added(3.0.0)` Type of item
-        self.state = state #: int: `added(3.0.0)` The item's state
-        self.direction = Direction(direction) #: :py:class:`Direction`: `added(3.0.0)` Direction the character is facing
-        self.velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: `added(3.0.0)` Character's velocity
-        self.position = Position(x_pos, y_pos) #: :py:class:`Position`: `added(3.0.0)` Character's position
-        self.damage = damage #: int: `added(3.0.0)` Amount of damage item has taken
-        self.timer = timer #: int: `added(3.0.0)` Number of frames before item expires
-        self.spawn_id = spawn_id #: int int: `added(3.0.0)` Number representing item
-
-    @classmethod
-    def _parse(cls, stream):
-        (frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('iHB5fHfI', stream)
-        return cls(frame_number, type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return ((self.frame_number == other.frame_number)
-            and (self.type_id == other.type_id)
-            and (self.state == other.state)
-            and (self.direction == other.direction)
-            and (self.velocity == other.velocity)
-            and (self.position == other.position)
-            and (self.damage == other.damage)
-            and (self.timer == other.timer)
-            and (self.spawn_id == other.spawn_id))
-
-
-class FrameBookend(Base):
-    """Marks the end of a frame."""
-
-    __slots__ = 'frame_number'
-
-    def __init__(self, frame_number):
-        self.frame_number = frame_number #: int | None: `added(3.0.0)` The number of the frame
-
-    @classmethod
-    def _parse(cls, stream):
-        (frame_number,) = unpack('i', stream)
-        return cls(frame_number)
-
-    def __eq__(self, other):
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.frame_number == other.frame_number
+            START = 'start'
+            ITEM_UPDATE = 'item_update'
+            BOOKEND = 'bookend'
 
 
 class Position(Base):

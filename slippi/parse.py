@@ -1,6 +1,6 @@
 import io, ubjson
 
-from slippi.event import EventType, ParseEvent, Start, End, Frame, FrameStart, ItemUpdate, FrameBookend
+from slippi.event import EventType, ParseEvent, Start, End, Frame
 from slippi.metadata import Metadata
 from slippi.util import *
 
@@ -35,21 +35,27 @@ def _parse_event(event_stream, payload_sizes):
     if event_type is EventType.GAME_START:
         event = Start._parse(stream)
     elif event_type is EventType.FRAME_PRE:
-        event = Frame.Event(Frame.Event.Id(stream),
+        event = Frame.Event(Frame.Event.PortId(stream),
                             Frame.Event.Type.PRE,
                             stream)
     elif event_type is EventType.FRAME_POST:
-        event = Frame.Event(Frame.Event.Id(stream),
+        event = Frame.Event(Frame.Event.PortId(stream),
                             Frame.Event.Type.POST,
+                            stream)
+    elif event_type is EventType.FRAME_START:
+        event = Frame.Event(Frame.Event.OtherId(stream),
+                            Frame.Event.Type.START,
+                            stream)
+    elif event_type is EventType.ITEM_UPDATE:
+        event = Frame.Event(Frame.Event.ItemId(stream),
+                            Frame.Event.Type.ITEM_UPDATE,
+                            stream)
+    elif event_type is EventType.FRAME_BOOKEND:
+        event = Frame.Event(Frame.Event.OtherId(stream),
+                            Frame.Event.Type.BOOKEND,
                             stream)
     elif event_type is EventType.GAME_END:
         event = End._parse(stream)
-    elif event_type is EventType.FRAME_START:
-        event = FrameStart._parse(stream)
-    elif event_type is EventType.ITEM_UPDATE:
-        event = ItemUpdate._parse(stream)
-    elif event_type is EventType.FRAME_BOOKEND:
-        event = FrameBookend._parse(stream)
     else:
         warn('unknown event code: 0x%02x' % code)
         event = None
@@ -86,36 +92,35 @@ def _parse_events(stream, payload_sizes, handlers):
             if not current_frame:
                 current_frame = Frame(event.id.frame)
 
-            port = current_frame.ports[event.id.port]
-            if not port:
-                port = Frame.Port()
-                current_frame.ports[event.id.port] = port
+            if isinstance(event.id, Frame.Event.PortId):
+                port = current_frame.ports[event.id.port]
+                if not port:
+                    port = Frame.Port()
+                    current_frame.ports[event.id.port] = port
 
-            if event.id.is_follower:
-                if port.follower is None:
-                    port.follower = Frame.Port.Data()
-                data = port.follower
-            else:
-                data = port.leader
+                if event.id.is_follower:
+                    if port.follower is None:
+                        port.follower = Frame.Port.Data()
+                    data = port.follower
+                else:
+                    data = port.leader
 
-            if event.type is Frame.Event.Type.PRE:
-                data._pre = event.data
-            elif event.type is Frame.Event.Type.POST:
-                data._post = event.data
-            else:
-                raise Exception('unknown frame data type: %s' % event.data)
-        elif isinstance(event, FrameStart):
-            handler = handlers.get(ParseEvent.FRAME_START)
-            if handler:
-                handler(event)
-        elif isinstance(event, ItemUpdate):
-            handler = handlers.get(ParseEvent.ITEM_UPDATE)
-            if handler:
-                handler(event)
-        elif isinstance(event, FrameBookend):
-            handler = handlers.get(ParseEvent.FRAME_BOOKEND)
-            if handler:
-                handler(event)
+                if event.type is Frame.Event.Type.PRE:
+                    data._pre = event.data
+                elif event.type is Frame.Event.Type.POST:
+                    data._post = event.data
+                else:
+                    raise Exception('unknown frame data type: %s' % event.data)
+            elif isinstance(event.id, Frame.Event.ItemId):
+                if current_frame.items is None:
+                    current_frame.items = []
+                item = Frame.Item(event.data)
+                current_frame.items.append(item)
+            elif isinstance(event.id, Frame.Event.OtherId):
+                if event.type is Frame.Event.Type.START:
+                    current_frame.start = Frame.Start(event.data)
+                elif event.type is Frame.Event.Type.BOOKEND:
+                    current_frame.bookend = Frame.Bookend(event.data)
 
     if current_frame:
         current_frame._finalize()

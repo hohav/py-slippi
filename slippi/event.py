@@ -462,19 +462,19 @@ class Position(Base):
 
 
 class Velocity(Base):
-    __slots__ = 'x_vel', 'y_vel'
+    __slots__ = 'x', 'y'
 
-    def __init__(self, x_vel, y_vel):
-        self.x_vel = x_vel
-        self.y_vel = y_vel
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.x_vel == other.x_vel and self.y_vel == other.y_vel
+        return self.x == other.x and self.y == other.y
 
     def __repr__(self):
-        return '(%.2f, %.2f)' % (self.x_vel, self.y_vel)
+        return '(%.2f, %.2f)' % (self.x, self.y)
 
 
 class Direction(IntEnum):

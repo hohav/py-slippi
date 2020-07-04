@@ -91,4 +91,5 @@ class IntFlag(enum.IntFlag):
 
 
 class EOFError(IOError):
-    pass
+    def __init__(self):
+        super().__init__('unexpected end of file')

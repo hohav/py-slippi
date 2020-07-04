@@ -5,6 +5,19 @@ from slippi.metadata import Metadata
 from slippi.util import *
 
 
+class ParseError(IOError):
+    def __init__(self, message, name = None, pos = None):
+        super().__init__(message)
+        self.name = name
+        self.pos = pos
+
+    def __str__(self):
+        return 'Parse error (%s %s): %s' % (
+            self.name or '?',
+            '@0x%x' % self.pos if self.pos else '?',
+            super().__str__())
+
+
 def _parse_event_payloads(stream):
     (code, payload_size) = unpack('BB', stream)
 
@@ -27,29 +40,46 @@ def _parse_event_payloads(stream):
 
 def _parse_event(event_stream, payload_sizes):
     (code,) = unpack('B', event_stream)
-    try: stream = io.BytesIO(event_stream.read(payload_sizes[code]))
+
+    # remember starting pos for better error reporting
+    try: base_pos = event_stream.tell() if event_stream.seekable() else None
+    except AttributeError: base_pos = None
+
+    try: size = payload_sizes[code]
     except KeyError: raise ValueError('unknown event type: 0x%x' % code)
 
-    try: event_type = EventType(code)
-    except ValueError: event_type = None
+    stream = io.BytesIO(event_stream.read(size))
 
-    if event_type is EventType.GAME_START:
-        event = Start._parse(stream)
-    elif event_type is EventType.FRAME_PRE:
-        event = Frame.Event(Frame.Event.Id(stream),
-                            Frame.Event.Type.PRE,
-                            stream)
-    elif event_type is EventType.FRAME_POST:
-        event = Frame.Event(Frame.Event.Id(stream),
-                            Frame.Event.Type.POST,
-                            stream)
-    elif event_type is EventType.GAME_END:
-        event = End._parse(stream)
-    else:
-        warn('unknown event code: 0x%02x' % code)
-        event = None
+    try:
+        try: event_type = EventType(code)
+        except ValueError: event_type = None
 
-    return event
+        if event_type is EventType.GAME_START:
+            event = Start._parse(stream)
+        elif event_type is EventType.FRAME_PRE:
+            event = Frame.Event(Frame.Event.Id(stream),
+                                Frame.Event.Type.PRE,
+                                stream)
+        elif event_type is EventType.FRAME_POST:
+            event = Frame.Event(Frame.Event.Id(stream),
+                                Frame.Event.Type.POST,
+                                stream)
+        elif event_type is EventType.GAME_END:
+            event = End._parse(stream)
+        else:
+            warn('unknown event code: 0x%02x' % code)
+            event = None
+
+        return event
+    except Exception as e:
+        # Calculate the stream position of the exception as best we can.
+        # This won't be perfect: for an invalid enum, the calculated position
+        # will be *after* the value at minimum, and may be farther than that
+        # due to `unpack`ing multiple values at once. But it's better than
+        # leaving it up to the `catch` clause in `parse`, because that will
+        # always report a position that's at the end of an event (due to
+        # `event_stream.read` above).
+        raise ParseError(str(e), pos = base_pos + stream.tell() if base_pos else None)
 
 
 def _parse_events(stream, payload_sizes, handlers):
@@ -141,8 +171,24 @@ def parse(input, handlers):
 
     `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
 
-    if isinstance(input, str):
-        with open(input, 'rb') as f:
-            _parse(f, handlers)
-    else:
-        _parse(input, handlers)
+    (f, needs_close) = (open(input, 'rb'), True) if isinstance(input, str) else (input, False)
+
+    try:
+        _parse(f, handlers)
+    except Exception as e:
+        e = e if isinstance(e, ParseError) else ParseError(str(e))
+
+        try: e.name = f.name
+        except AttributeError: pass
+
+        try:
+            # prefer provided position info, as it will be more accurate
+            if not e.pos and f.seekable():
+                e.pos = f.tell()
+        # not all stream-like objects support `seekable` (e.g. HTTP requests)
+        except AttributeError: pass
+
+        raise e
+    finally:
+        if needs_close:
+            f.close()

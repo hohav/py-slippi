@@ -83,6 +83,10 @@ class IntEnum(enum.IntEnum):
     def __repr__(self):
         return '%d:%s' % (self._value_, self._name_)
 
+    @classmethod
+    def _missing_(cls, value):
+        raise ValueError("0x%x is not a valid %s" % (value, cls.__name__)) from None
+
 
 class IntFlag(enum.IntFlag):
     def __repr__(self):

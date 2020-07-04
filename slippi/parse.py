@@ -27,7 +27,8 @@ def _parse_event_payloads(stream):
 
 def _parse_event(event_stream, payload_sizes):
     (code,) = unpack('B', event_stream)
-    stream = io.BytesIO(event_stream.read(payload_sizes[code]))
+    try: stream = io.BytesIO(event_stream.read(payload_sizes[code]))
+    except KeyError: raise ValueError('unknown event type: 0x%x' % code)
 
     try: event_type = EventType(code)
     except ValueError: event_type = None

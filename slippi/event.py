@@ -80,7 +80,7 @@ class Start(Base):
                 shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
                 if players[i]:
                     players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
-        except EofException: pass
+        except EOFError: pass
 
         try: # v1.3.0
             for i in PORTS:
@@ -91,15 +91,15 @@ class Start(Base):
                         tag_bytes = tag_bytes[:null_pos]
                     except ValueError: pass
                     players[i].tag = tag_bytes.decode('shift-jis').rstrip()
-        except EofException: pass
+        except EOFError: pass
 
         # v1.5.0
         try: (is_pal,) = unpack('?', stream)
-        except EofException: is_pal = None
+        except EOFError: is_pal = None
 
         # v2.0.0
         try: (is_frozen_ps,) = unpack('?', stream)
-        except EofException: is_frozen_ps = None
+        except EOFError: is_frozen_ps = None
 
         return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal, is_frozen_ps=is_frozen_ps)
 
@@ -204,7 +204,7 @@ class End(Base):
         try: # v2.0.0
             (lras,) = unpack('B', stream)
             lras_initiator = lras if lras < len(PORTS) else None
-        except EofException:
+        except EOFError:
             lras_initiator = None
         return cls(cls.Method(method), lras_initiator)
 
@@ -280,11 +280,11 @@ class Frame(Base):
 
                     # v1.2.0
                     try: raw_analog_x = unpack('B', stream)
-                    except EofException: raw_analog_x = None
+                    except EOFError: raw_analog_x = None
 
                     # v1.4.0
                     try: damage = unpack('f', stream)
-                    except EofException: damage = None
+                    except EOFError: damage = None
 
                     self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
@@ -308,7 +308,7 @@ class Frame(Base):
 
                     # v0.2.0
                     try: (state_age,) = unpack('f', stream)
-                    except EofException: state_age = None
+                    except EOFError: state_age = None
 
                     try: # v2.0.0
                         flags = unpack('5B', stream)
@@ -321,7 +321,7 @@ class Frame(Base):
                         ground = maybe_ground if not airborne else None
                         hit_stun = misc_as if flags.HIT_STUN else None
                         l_cancel = LCancel(l_cancel) if l_cancel else None
-                    except EofException:
+                    except EOFError:
                         (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
 
                     self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik

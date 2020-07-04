@@ -46,7 +46,7 @@ def unpack(fmt, stream):
     size = struct.calcsize(fmt)
     bytes = stream.read(size)
     if not bytes:
-        raise EofException()
+        raise EOFError()
     return struct.unpack(fmt, bytes)
 
 
@@ -90,5 +90,5 @@ class IntFlag(enum.IntFlag):
         return '%s:%s' % (bin(self._value_), '|'.join([str(m._name_ or m._value_) for m in members]))
 
 
-class EofException(Exception):
+class EOFError(IOError):
     pass

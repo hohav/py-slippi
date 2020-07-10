@@ -343,8 +343,9 @@ class Frame(Base):
                     self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
 
 
-    # This class is only used temporarily while parsing frame data.
     class Event(Base):
+        """Temporary wrapper used while parsing frame data."""
+
         __slots__ = 'id', 'type', 'data'
 
         def __init__(self, id, type, data):

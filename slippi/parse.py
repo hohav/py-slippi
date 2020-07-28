@@ -46,13 +46,13 @@ def _parse_event(event_stream, payload_sizes):
         event = Frame.Event(Frame.Event.OtherId(stream),
                             Frame.Event.Type.START,
                             stream)
-    elif event_type is EventType.ITEM_UPDATE:
+    elif event_type is EventType.ITEM:
         event = Frame.Event(Frame.Event.ItemId(stream),
-                            Frame.Event.Type.ITEM_UPDATE,
+                            Frame.Event.Type.ITEM,
                             stream)
-    elif event_type is EventType.FRAME_BOOKEND:
+    elif event_type is EventType.FRAME_END:
         event = Frame.Event(Frame.Event.OtherId(stream),
-                            Frame.Event.Type.BOOKEND,
+                            Frame.Event.Type.FRAME_END,
                             stream)
     elif event_type is EventType.GAME_END:
         event = End._parse(stream)
@@ -120,7 +120,7 @@ def _parse_events(stream, payload_sizes, handlers):
                 if event.type is Frame.Event.Type.START:
                     current_frame.start = Frame.Start(event.data)
                 elif event.type is Frame.Event.Type.BOOKEND:
-                    current_frame.bookend = Frame.Bookend(event.data)
+                    current_frame.end = Frame.Bookend(event.data)
 
     if current_frame:
         current_frame._finalize()

@@ -15,8 +15,8 @@ class EventType(IntEnum):
     FRAME_POST = 0x38
     GAME_END = 0x39
     FRAME_START = 0x3A
-    ITEM_UPDATE = 0x3B
-    FRAME_BOOKEND = 0x3C
+    ITEM = 0x3B
+    FRAME_END = 0x3C
 
 
 class ParseEvent(Enum):
@@ -27,9 +27,9 @@ class ParseEvent(Enum):
     START = 'start' #: :py:class:`Start`:
     FRAME = 'frame' #: :py:class:`Frame`:
     END = 'end' #: :py:class:`End`:
-    FRAME_START = 'frame_start' #: :py:class:`FrameStart`:
-    ITEM_UPDATE = 'item_update' #: :py:class:`ItemUpdate`:
-    FRAME_BOOKEND = 'frame_bookend' #: :py:class:`FrameBookend`:
+    FRAME_START = 'frame_start' #: :py:class:`Frame.Start`:
+    ITEM = 'item' #: :py:class:`Frame.Item`:
+    FRAME_END = 'frame_end' #: :py:class:`Frame.End`:
 
 
 class Start(Base):
@@ -231,7 +231,7 @@ class End(Base):
 class Frame(Base):
     """A single frame of the game. Includes data for all characters."""
 
-    __slots__ = 'index', 'ports', 'items', 'start', 'bookend'
+    __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     def __init__(self, index):
         self.index = index
@@ -241,8 +241,8 @@ class Frame(Base):
         """list(:py:class:`Item` | None): `added 3.0.0` Information about 15 or fewer specific items."""
         self.start = None
         """:py:class:`Start` | None: `added 2.2.0` Frame and random seed information."""
-        self.bookend = None
-        """:py:class:`Bookend` | None: `added 2.2.0` Marks the end of a frame."""
+        self.end = None
+        """:py:class:`End` | None: `added 2.2.0` Marks the end of a frame."""
 
     def _finalize(self):
         self.ports = tuple(self.ports)
@@ -358,12 +358,12 @@ class Frame(Base):
     class Item(Base):
         """Information for a given item. Note that "items" such as Fox/Falco's lasers are also included."""
 
-        __slots__ = 'type_id', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
+        __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
 
         def __init__(self, stream):
-            (type_id, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+            (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
 
-            self.type_id = try_enum(Item, type_id) #: :py:class:`slippi.id.Item` | int: Type of item
+            self.type = try_enum(Item, type) #: :py:class:`slippi.id.Item` | int: Type of item
             self.state = state #: int: The item's state
             self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
             self.velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: Character's velocity
@@ -383,7 +383,7 @@ class Frame(Base):
             self.random_seed = random_seed #: int: The random seed at the start of the frame
 
 
-    class Bookend(Base):
+    class End(Base):
         """Marks the end of a frame."""
 
         def __init__(self, frame_number):
@@ -424,8 +424,8 @@ class Frame(Base):
             PRE = 'pre'
             POST = 'post'
             START = 'start'
-            ITEM_UPDATE = 'item_update'
-            BOOKEND = 'bookend'
+            ITEM = 'item'
+            END = 'end'
 
 
 class Position(Base):

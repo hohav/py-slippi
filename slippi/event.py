@@ -360,17 +360,28 @@ class Frame(Base):
 
         __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
 
-        def __init__(self, stream):
-            (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+        def __init__(self, type, state, direction, velocity, position, damage, timer, spawn_id):
+            self.type = type
+            self.state = state
+            self.direction = direction
+            self.velocity = velocity
+            self.position = position
+            self.damage = damage
+            self.timer = timer
+            self.spawn_id = spawn_id
 
-            self.type = try_enum(Item, type) #: :py:class:`slippi.id.Item` | int: Type of item
-            self.state = state #: int: The item's state
-            self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
-            self.velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: Character's velocity
-            self.position = Position(x_pos, y_pos) #: :py:class:`Position`: Character's position
-            self.damage = damage #: int: Amount of damage item has taken
-            self.timer = timer #: int: Number of frames before item expires
-            self.spawn_id = spawn_id #: int: Number representing item
+        @classmethod
+        def _parse(cls, stream):
+            (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+            type = try_enum(Item, type)
+            state = state #: int: The item's state
+            direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
+            velocity = Velocity(x_vel, y_vel) #: :py:class:`Velocity`: Character's velocity
+            position = Position(x_pos, y_pos) #: :py:class:`Position`: Character's position
+            damage = damage #: int: Amount of damage item has taken
+            timer = timer #: int: Number of frames before item expires
+            spawn_id = spawn_id #: int: Number representing item
+            return cls(type, state, direction, velocity, position, damage, timer, spawn_id)
 
 
     class Start(Base):
@@ -378,16 +389,25 @@ class Frame(Base):
 
         __slots__ = 'random_seed'
 
-        def __init__(self, stream):
+        def __init__(self, random_seed):
+            self.random_seed = random_seed
+
+        @classmethod
+        def _parse(cls, stream):
             (random_seed,) = unpack('I', stream)
-            self.random_seed = random_seed #: int: The random seed at the start of the frame
+            random_seed = random_seed #: int: The random seed at the start of the frame
+            return cls(random_seed)
 
 
     class End(Base):
         """Marks the end of a frame."""
 
-        def __init__(self, frame_number):
+        def __init__(self):
             pass
+
+        @classmethod
+        def _parse(cls, stream):
+            return cls()
 
 
     # This class is only used temporarily while parsing frame data.

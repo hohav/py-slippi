@@ -238,11 +238,11 @@ class Frame(Base):
         self.ports = [None, None, None, None]
         """tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)."""
         self.items = None
-        """list(:py:class:`Item` | None): `added 3.0.0` Information about 15 or fewer specific items."""
+        """list(:py:class:`Item` | None): `added(3.0.0)` Information about 15 or fewer specific items."""
         self.start = None
-        """:py:class:`Start` | None: `added 2.2.0` Frame and random seed information."""
+        """:py:class:`Start` | None: `added(2.2.0)` Frame and random seed information."""
         self.end = None
-        """:py:class:`End` | None: `added 2.2.0` Marks the end of a frame."""
+        """:py:class:`End` | None: `added(2.2.0)` Marks the end of a frame."""
 
     def _finalize(self):
         self.ports = tuple(self.ports)

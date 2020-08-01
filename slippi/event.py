@@ -91,7 +91,14 @@ class Start(Base):
         try: (is_frozen_ps,) = unpack('?', stream)
         except EOFError: is_frozen_ps = None
 
-        return cls(is_teams=is_teams, players=tuple(players), random_seed=random_seed, slippi=slippi, stage=stage, is_pal=is_pal, is_frozen_ps=is_frozen_ps)
+        return cls(
+            is_teams=is_teams,
+            players=tuple(players),
+            random_seed=random_seed,
+            slippi=slippi,
+            stage=stage,
+            is_pal=is_pal,
+            is_frozen_ps=is_frozen_ps)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -249,14 +256,14 @@ class Frame(Base):
             def pre(self):
                 """:py:class:`Pre`: Pre-frame update data"""
                 if not isinstance(self._pre, self.Pre):
-                    self._pre = self.Pre(self._pre)
+                    self._pre = self.Pre._parse(self._pre)
                 return self._pre
 
             @property
             def post(self):
                 """:py:class:`Post`: Pre-frame update data"""
                 if not isinstance(self._post, self.Post):
-                    self._post = self.Post(self._post)
+                    self._post = self.Post._parse(self._post)
                 return self._post
 
 
@@ -265,7 +272,20 @@ class Frame(Base):
 
                 __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x', 'damage'
 
-                def __init__(self, stream):
+                def __init__(self, state, position, direction, joystick, cstick, triggers, buttons, random_seed, raw_analog_x = None, damage = None):
+                    self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
+                    self.position = position #: :py:class:`Position`: Character's position
+                    self.direction = direction #: :py:class:`Direction`: Direction the character is facing
+                    self.joystick = joystick #: :py:class:`Position`: Processed analog joystick position
+                    self.cstick = cstick #: :py:class:`Position`: Processed analog c-stick position
+                    self.triggers = triggers #: :py:class:`Triggers`: Trigger state
+                    self.buttons = buttons #: :py:class:`Buttons`: Button state
+                    self.random_seed = random_seed #: int: Random seed at this point
+                    self.raw_analog_x = raw_analog_x #: int | None: `added(1.2.0)` Raw x analog controller input (for UCF)
+                    self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
+
+                @classmethod
+                def _parse(cls, stream):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
                     # v1.2.0
@@ -276,24 +296,45 @@ class Frame(Base):
                     try: damage = unpack('f', stream)
                     except EOFError: damage = None
 
-                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state
-                    self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
-                    self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
-                    self.joystick = Position(joystick_x, joystick_y) #: :py:class:`Position`: Processed analog joystick position
-                    self.cstick = Position(cstick_x, cstick_y) #: :py:class:`Position`: Processed analog c-stick position
-                    self.triggers = Triggers(trigger_logical, trigger_physical_l, trigger_physical_r) #: :py:class:`Triggers`: Trigger state
-                    self.buttons = Buttons(buttons_logical, buttons_physical) #: :py:class:`Buttons`: Button state
-                    self.random_seed = random_seed #: int: Random seed at this point
-                    self.raw_analog_x = raw_analog_x #: int | None: `added(1.2.0)` Raw x analog controller input (for UCF)
-                    self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
+                    return cls(
+                        state=try_enum(ActionState, state),
+                        position=Position(position_x, position_y),
+                        direction=Direction(direction),
+                        joystick=Position(joystick_x, joystick_y),
+                        cstick=Position(cstick_x, cstick_y),
+                        triggers=Triggers(trigger_logical, trigger_physical_l, trigger_physical_r),
+                        buttons=Buttons(buttons_logical, buttons_physical),
+                        random_seed=random_seed,
+                        raw_analog_x=raw_analog_x,
+                        damage=damage)
 
 
             class Post(Base):
                 """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""
 
-                __slots__ = 'character', 'state', 'state_age', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
+                __slots__ = 'character', 'state', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'state_age', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
 
-                def __init__(self, stream):
+                def __init__(self, character, state, position, direction, damage, shield, stocks, last_attack_landed, last_hit_by, combo_count, state_age = None, flags = None, hit_stun = None, airborne = None, ground = None, jumps = None, l_cancel = None):
+                    self.character = character #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
+                    self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
+                    self.position = position #: :py:class:`Position`: Character's position
+                    self.direction = direction #: :py:class:`Direction`: Direction the character is facing
+                    self.damage = damage #: float: Current damage percent
+                    self.shield = shield #: float: Current size of shield
+                    self.stocks = stocks #: int: Number of stocks remaining
+                    self.last_attack_landed = last_attack_landed #: :py:class:`Attack` | int | None: Last attack that this character landed
+                    self.last_hit_by = last_hit_by #: int | None: Port of character that last hit this character
+                    self.combo_count = combo_count #: int: Combo count as defined by the game
+                    self.state_age = state_age #: float | None: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
+                    self.flags = flags #: :py:class:`StateFlags` | None: `added(2.0.0)` State flags
+                    self.hit_stun = hit_stun #: float | None: `added(2.0.0)` Number of hitstun frames remaining
+                    self.airborne = airborne #: bool | None: `added(2.0.0)` True if character is airborne
+                    self.ground = ground #: int | None: `added(2.0.0)` ID of ground character is standing on, if any
+                    self.jumps = jumps #: int | None: `added(2.0.0)` Jumps remaining
+                    self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
+
+                @classmethod
+                def _parse(cls, stream):
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
 
                     # v0.2.0
@@ -314,23 +355,24 @@ class Frame(Base):
                     except EOFError:
                         (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
 
-                    self.character = InGameCharacter(character) #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
-                    self.state = try_enum(ActionState, state) #: :py:class:`slippi.id.ActionState` | int: Character's action state
-                    self.state_age = state_age #: float | None: Number of frames action state has been active. Can have a fractional component for certain actions
-                    self.position = Position(position_x, position_y) #: :py:class:`Position`: Character's position
-                    self.direction = Direction(direction) #: :py:class:`Direction`: Direction the character is facing
-                    self.damage = damage #: float: Current damage percent
-                    self.shield = shield #: float: Current size of shield
-                    self.stocks = stocks #: int: Number of stocks remaining
-                    self.last_attack_landed = try_enum(Attack, last_attack_landed) if last_attack_landed else None #: :py:class:`Attack` | int | None: Last attack that this character landed
-                    self.last_hit_by = last_hit_by if last_hit_by < 4 else None #: int | None: Port of character that last hit this character
-                    self.combo_count = combo_count #: int: Combo count as defined by the game
-                    self.flags = flags #: :py:class:`StateFlags` | None: `added(2.0.0)` State flags
-                    self.hit_stun = hit_stun #: float | None: `added(2.0.0)` Number of hitstun frames remaining
-                    self.airborne = airborne #: bool | None: `added(2.0.0)` True if character is airborne
-                    self.ground = ground #: int | None: `added(2.0.0)` ID of ground character is standing on, if any
-                    self.jumps = jumps #: int | None: `added(2.0.0)` Jumps remaining
-                    self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
+                    return cls(
+                        character=InGameCharacter(character),
+                        state=try_enum(ActionState, state),
+                        state_age=state_age,
+                        position=Position(position_x, position_y),
+                        direction=Direction(direction),
+                        damage=damage,
+                        shield=shield,
+                        stocks=stocks,
+                        last_attack_landed=try_enum(Attack, last_attack_landed) if last_attack_landed else None,
+                        last_hit_by=last_hit_by if last_hit_by < 4 else None,
+                        combo_count=combo_count,
+                        flags=flags,
+                        hit_stun=hit_stun,
+                        airborne=airborne,
+                        ground=ground,
+                        jumps=jumps,
+                        l_cancel=l_cancel)
 
 
     class Event(Base):

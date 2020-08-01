@@ -1,8 +1,18 @@
 import io, ubjson
 
-from slippi.event import EventType, ParseEvent, Start, End, Frame
+from slippi.event import EventType, Start, End, Frame
 from slippi.metadata import Metadata
 from slippi.util import *
+
+
+class ParseEvent(Enum):
+    """Parser events, used as keys for event handlers. Docstrings indicate the type of object that will be passed to each handler."""
+
+    METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`:
+    METADATA_RAW = 'metadata_raw' #: dict:
+    START = 'start' #: :py:class:`Start`:
+    FRAME = 'frame' #: :py:class:`Frame`:
+    END = 'end' #: :py:class:`End`:
 
 
 class ParseError(IOError):

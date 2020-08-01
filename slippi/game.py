@@ -1,5 +1,4 @@
-from slippi.event import ParseEvent
-from slippi.parse import parse
+from slippi.parse import parse, ParseEvent
 from slippi.util import *
 
 

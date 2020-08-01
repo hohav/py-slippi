@@ -5,7 +5,8 @@ import datetime, os, unittest
 from slippi import Game, parse
 from slippi.metadata import Metadata
 from slippi.id import InGameCharacter, CSSCharacter, Stage
-from slippi.event import Start, End, Frame, Buttons, Triggers, Position, ParseEvent
+from slippi.event import Start, End, Frame, Buttons, Triggers, Position
+from slippi.parse import ParseEvent
 
 
 BPhys = Buttons.Physical

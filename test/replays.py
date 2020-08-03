@@ -3,10 +3,10 @@
 import datetime, os, unittest
 
 from slippi import Game, parse
-from slippi.id import InGameCharacter, CSSCharacter, Stage
+from slippi.id import CSSCharacter, InGameCharacter, Item, Stage
 from slippi.log import log
 from slippi.metadata import Metadata
-from slippi.event import Start, End, Frame, Buttons, Triggers, Position
+from slippi.event import Buttons, Direction, End, Frame, Position, Start, Triggers, Velocity
 from slippi.parse import ParseEvent
 
 
@@ -178,6 +178,42 @@ class TestGame(unittest.TestCase):
         with self.assertLogs(log, 'INFO') as log_context:
             game = self._game('unknown_event')
         self.assertEqual(log_context.output, ['INFO:root:ignoring unknown event type: 0xff'])
+
+    def test_items(self):
+        game = self._game('items')
+        items = {}
+        for f in game.frames:
+            for i in f.items:
+                if not i.spawn_id in items:
+                    items[i.spawn_id] = i
+        self.assertEqual(items, {
+            0: Frame.Item(
+                damage=0,
+                direction=Direction.RIGHT,
+                position=Position(-62.7096061706543, -1.4932749271392822),
+                spawn_id=0,
+                state=0,
+                timer=140.0,
+                type=Item.PEACH_TURNIP,
+                velocity=Velocity(0.0, 0.0)),
+            1: Frame.Item(
+                damage=0,
+                direction=Direction.LEFT,
+                position=Position(20.395559310913086, -1.4932749271392822),
+                spawn_id=1,
+                state=0,
+                timer=140.0,
+                type=Item.PEACH_TURNIP,
+                velocity=Velocity(0.0, 0.0)),
+            2: Frame.Item(
+                damage=0,
+                direction=Direction.RIGHT,
+                position=Position(-3.982539176940918, -1.4932749271392822),
+                spawn_id=2,
+                state=0,
+                timer=140.0,
+                type=Item.PEACH_TURNIP,
+                velocity=Velocity(0.0, 0.0))})
 
 
 class TestParse(unittest.TestCase):

@@ -1,11 +1,9 @@
-import enum, re, struct, sys, termcolor, warnings
+import enum, os, re, struct, sys
+
+from slippi.log import log
 
 
 PORTS = range(4)
-
-
-warnings.formatwarning = lambda msg, *args, **kwargs: '%s %s\n' % (termcolor.colored('WARNING', 'yellow'), msg)
-warn = warnings.warn
 
 
 def _indent(s):
@@ -37,7 +35,7 @@ def try_enum(enum, val):
     try:
         return enum(val)
     except ValueError:
-        warn('unknown %s: %s' % (enum.__name__, val))
+        log.warn('unknown %s: %s' % (enum.__name__, val))
         return val
 
 

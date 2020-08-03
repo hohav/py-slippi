@@ -3,6 +3,7 @@ import io, ubjson
 from slippi.event import EventType, Start, End, Frame
 from slippi.metadata import Metadata
 from slippi.util import *
+from slippi.log import log
 
 
 class ParseEvent(Enum):
@@ -47,6 +48,8 @@ def _parse_event_payloads(stream):
     for i in range(command_count):
         (code, size) = unpack('BH', stream)
         payload_sizes[code] = size
+        try: EventType(code)
+        except ValueError: log.info('ignoring unknown event type: 0x%02x' % code)
 
     return payload_sizes
 
@@ -59,7 +62,7 @@ def _parse_event(event_stream, payload_sizes):
     except AttributeError: base_pos = None
 
     try: size = payload_sizes[code]
-    except KeyError: raise ValueError('unknown event type: 0x%x' % code)
+    except KeyError: raise ValueError('unexpected event type: 0x%02x' % code)
 
     stream = io.BytesIO(event_stream.read(size))
 
@@ -92,9 +95,7 @@ def _parse_event(event_stream, payload_sizes):
         elif event_type is EventType.GAME_END:
             event = End._parse(stream)
         else:
-            warn('unknown event code: 0x%02x' % code)
             event = None
-
         return event
     except Exception as e:
         # Calculate the stream position of the exception as best we can.
@@ -129,7 +130,7 @@ def _parse_events(stream, payload_sizes, handlers):
             # as they don't exist before Slippi 3.0.0.
             if current_frame and current_frame.index != event.id.frame:
                 if current_frame.index > event.id.frame:
-                    warn(f'out-of-order-frame: {current_frame.index} -> {event.id.frame}')
+                    log.warn(f'out-of-order-frame: {current_frame.index} -> {event.id.frame}')
 
                 current_frame._finalize()
                 handler = handlers.get(ParseEvent.FRAME)

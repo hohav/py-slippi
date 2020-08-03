@@ -3,8 +3,9 @@
 import datetime, os, unittest
 
 from slippi import Game, parse
-from slippi.metadata import Metadata
 from slippi.id import InGameCharacter, CSSCharacter, Stage
+from slippi.log import log
+from slippi.metadata import Metadata
 from slippi.event import Start, End, Frame, Buttons, Triggers, Position
 from slippi.parse import ParseEvent
 
@@ -174,8 +175,9 @@ class TestGame(unittest.TestCase):
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))
 
     def test_unknown_event(self):
-        with self.assertWarns(Warning):
+        with self.assertLogs(log, 'INFO') as log_context:
             game = self._game('unknown_event')
+        self.assertEqual(log_context.output, ['INFO:root:ignoring unknown event type: 0xff'])
 
 
 class TestParse(unittest.TestCase):

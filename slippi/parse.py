@@ -129,9 +129,6 @@ def _parse_events(stream, payload_sizes, handlers):
             # We can't use Frame Bookend events to detect end-of-frame,
             # as they don't exist before Slippi 3.0.0.
             if current_frame and current_frame.index != event.id.frame:
-                if current_frame.index > event.id.frame:
-                    log.warn(f'out-of-order-frame: {current_frame.index} -> {event.id.frame}')
-
                 current_frame._finalize()
                 handler = handlers.get(ParseEvent.FRAME)
                 if handler:

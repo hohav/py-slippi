@@ -1,4 +1,7 @@
+from logging import debug
+
 from slippi.parse import parse, ParseEvent
+from slippi.event import FIRST_FRAME_INDEX
 from slippi.util import *
 
 
@@ -25,12 +28,23 @@ class Game(Base):
 
         handlers = {
             ParseEvent.START: lambda x: setattr(self, 'start', x),
-            ParseEvent.FRAME: lambda x: self.frames.append(x),
+            ParseEvent.FRAME: self._add_frame,
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
             ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}
 
         parse(input, handlers)
+
+    def _add_frame(self, f):
+        idx = f.index - FIRST_FRAME_INDEX
+        count = len(self.frames)
+        if idx == count:
+            self.frames.append(f)
+        elif idx < count: # rollback
+            debug(f"rollback: {count-1} -> {idx}")
+            self.frames[idx] = f
+        else:
+            raise Exception(f'missing frames: {count-1} -> {idx}')
 
     def _attr_repr(self, attr):
         self_attr = getattr(self, attr)

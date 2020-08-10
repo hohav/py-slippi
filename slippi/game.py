@@ -1,8 +1,8 @@
 from logging import debug
 
-from slippi.parse import parse, ParseEvent
-from slippi.event import FIRST_FRAME_INDEX
-from slippi.util import *
+from .event import FIRST_FRAME_INDEX
+from .parse import parse, ParseEvent
+from .util import *
 
 
 class Game(Base):

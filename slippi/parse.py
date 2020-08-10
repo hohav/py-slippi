@@ -1,9 +1,9 @@
 import io, ubjson
 
-from slippi.event import EventType, Start, End, Frame
-from slippi.metadata import Metadata
-from slippi.util import *
-from slippi.log import log
+from .event import EventType, Start, End, Frame
+from .log import log
+from .metadata import Metadata
+from .util import *
 
 
 class ParseEvent(Enum):

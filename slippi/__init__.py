@@ -1,2 +1,2 @@
-from slippi.game import Game
-from slippi.parse import parse
+from .game import Game
+from .parse import parse

@@ -1,6 +1,6 @@
 import enum, os, re, struct, sys
 
-from slippi.log import log
+from .log import log
 
 
 PORTS = range(4)

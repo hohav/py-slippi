@@ -1,5 +1,5 @@
-import slippi.id as sid
-from slippi.util import *
+from . import id as sid
+from .util import *
 
 
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.

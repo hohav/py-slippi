@@ -1,9 +1,9 @@
 import re
 from datetime import datetime, timedelta, timezone
 
-import slippi.event as evt
-import slippi.id as id
-from slippi.util import *
+from . import event as evt
+from . import id as sid
+from .util import *
 
 
 class Metadata(Base):
@@ -47,7 +47,7 @@ class Metadata(Base):
         def _parse(cls, json):
             characters = {}
             for char_id, duration in json['characters'].items():
-                characters[id.InGameCharacter(int(char_id))] = duration
+                characters[sid.InGameCharacter(int(char_id))] = duration
             try: netplay_name = json['names']['netplay']
             except KeyError: netplay_name = None
             return cls(characters, netplay_name)

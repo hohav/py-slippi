@@ -83,7 +83,8 @@ class IntEnum(enum.IntEnum):
 
     @classmethod
     def _missing_(cls, value):
-        raise ValueError("0x%x is not a valid %s" % (value, cls.__name__)) from None
+        val_desc = f'0x{value:x}' if isinstance(value, int) else f'{value}'
+        raise ValueError(f'{val_desc} is not a valid {cls.__name__}') from None
 
 
 class IntFlag(enum.IntFlag):

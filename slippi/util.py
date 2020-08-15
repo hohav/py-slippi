@@ -35,7 +35,7 @@ def try_enum(enum, val):
     try:
         return enum(val)
     except ValueError:
-        log.warn('unknown %s: %s' % (enum.__name__, val))
+        log.info('unknown %s: %s' % (enum.__name__, val))
         return val
 
 

@@ -556,6 +556,7 @@ class Item(IntEnum):
 
     # CHARACTER RELATED
     MARIO_FIRE = 0x30
+    DR_MARIO_PILL = 0x31
     KIRBY_CUTTER_BEAM = 0x32
     KIRBY_HAMMER = 0x33
     FOX_LASER = 0x36

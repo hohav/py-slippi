@@ -33,25 +33,26 @@ class ParseError(IOError):
 
 
 def _parse_event_payloads(stream):
-    (code, payload_size) = unpack('BB', stream)
+    (code, this_size) = unpack('BB', stream)
 
     event_type = EventType(code)
     if event_type is not EventType.EVENT_PAYLOADS:
-        raise Exception('expected event payloads, but got: %s' % event_type)
+        raise Exception(f'expected event payloads, but got {event_type}')
 
-    payload_size -= 1 # includes size byte for some reason
-    command_count = payload_size // 3
-    if command_count * 3 != payload_size:
-        raise Exception('payload size not divisible by 3: %d' % payload_size)
+    this_size -= 1 # includes size byte for some reason
+    command_count = this_size // 3
+    if command_count * 3 != this_size:
+        raise Exception(f'payload size not divisible by 3: {this_size}')
 
-    payload_sizes = {}
+    sizes = {}
     for i in range(command_count):
         (code, size) = unpack('BH', stream)
-        payload_sizes[code] = size
+        sizes[code] = size
         try: EventType(code)
         except ValueError: log.info('ignoring unknown event type: 0x%02x' % code)
 
-    return payload_sizes
+    log.debug(f'event payload sizes: {sizes}')
+    return (2 + this_size, sizes)
 
 
 def _parse_event(event_stream, payload_sizes):
@@ -96,7 +97,7 @@ def _parse_event(event_stream, payload_sizes):
             event = End._parse(stream)
         else:
             event = None
-        return event
+        return (1 + size, event)
     except Exception as e:
         # Calculate the stream position of the exception as best we can.
         # This won't be perfect: for an invalid enum, the calculated position
@@ -108,12 +109,13 @@ def _parse_event(event_stream, payload_sizes):
         raise ParseError(str(e), pos = base_pos + stream.tell() if base_pos else None)
 
 
-def _parse_events(stream, payload_sizes, handlers):
+def _parse_events(stream, payload_sizes, total_size, handlers):
     current_frame = None
-    done = False
+    bytes_read = 0
 
-    while not done:
-        event = _parse_event(stream, payload_sizes)
+    while bytes_read < total_size:
+        (b, event) = _parse_event(stream, payload_sizes)
+        bytes_read += b
         if isinstance(event, Start):
             handler = handlers.get(ParseEvent.START)
             if handler:
@@ -122,7 +124,6 @@ def _parse_events(stream, payload_sizes, handlers):
             handler = handlers.get(ParseEvent.END)
             if handler:
                 handler(event)
-            done = True
         elif isinstance(event, Frame.Event):
             # Accumulate all events for a single frame into a single `Frame` object.
 
@@ -176,10 +177,10 @@ def _parse(stream, handlers):
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
     expect_bytes(b'{U\x03raw[$U#l', stream)
-    (length,) = unpack('l', stream) # currently unused
+    (length,) = unpack('l', stream)
 
-    payload_sizes = _parse_event_payloads(stream)
-    _parse_events(stream, payload_sizes, handlers)
+    (bytes_read, payload_sizes) = _parse_event_payloads(stream)
+    _parse_events(stream, payload_sizes, length - bytes_read, handlers)
 
     expect_bytes(b'U\x08metadata', stream)
 

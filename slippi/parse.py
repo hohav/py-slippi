@@ -57,6 +57,7 @@ def _parse_event_payloads(stream):
 
 def _parse_event(event_stream, payload_sizes):
     (code,) = unpack('B', event_stream)
+    log.debug(f'Event: 0x{code:x}')
 
     # remember starting pos for better error reporting
     try: base_pos = event_stream.tell() if event_stream.seekable() else None

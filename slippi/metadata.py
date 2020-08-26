@@ -39,23 +39,35 @@ class Metadata(Base):
 
 
     class Player(Base):
-        def __init__(self, characters, netplay_name=None):
+        def __init__(self, characters, netplay=None):
             self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
-            self.netplay_name = netplay_name #: str | None: Netplay name of player (Dolphin-only)
+            self.netplay = netplay #: :py:class:`Netplay` | None: Netplay info (Dolphin-only)
 
         @classmethod
         def _parse(cls, json):
             characters = {}
             for char_id, duration in json['characters'].items():
                 characters[sid.InGameCharacter(int(char_id))] = duration
-            try: netplay_name = json['names']['netplay']
-            except KeyError: netplay_name = None
-            return cls(characters, netplay_name)
+            try:
+                netplay = cls.Netplay(code=json['names']['code'], name=json['names']['netplay'])
+            except KeyError: netplay = None
+            return cls(characters, netplay)
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):
                 return NotImplemented
-            return self.characters == other.characters and self.netplay_name == other.netplay_name
+            return self.characters == other.characters and self.netplay == other.netplay
+
+
+        class Netplay(Base):
+            def __init__(self, code, name):
+                self.code = code #: str: Netplay code (e.g. "ABCD#123")
+                self.name = name #: str: Netplay nickname
+
+            def __eq__(self, other):
+                if not isinstance(other, self.__class__):
+                    return NotImplemented
+                return self.code == other.code and self.name == other.name
 
 
     class Platform(Enum):

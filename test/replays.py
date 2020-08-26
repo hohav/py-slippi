@@ -151,10 +151,10 @@ class TestGame(unittest.TestCase):
         self.assertEqual(game.metadata.platform, Metadata.Platform.NINTENDONT)
 
     def test_netplay_name(self):
-        game = self._game('netplay_name')
+        game = self._game('netplay')
         players = game.metadata.players
-        self.assertEqual(players[0].netplay_name, 'Player1')
-        self.assertEqual(players[1].netplay_name, 'metonym')
+        self.assertEqual(players[0].netplay, Metadata.Player.Netplay(code='ABCD#123', name='abcdefghijk'))
+        self.assertEqual(players[1].netplay, Metadata.Player.Netplay(code='XX#000', name='nobody'))
 
     def test_console_name(self):
         game = self._game('console_name')

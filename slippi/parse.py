@@ -113,8 +113,10 @@ def _parse_event(event_stream, payload_sizes):
 def _parse_events(stream, payload_sizes, total_size, handlers):
     current_frame = None
     bytes_read = 0
+    event = None
 
-    while bytes_read < total_size:
+    # `total_size` will be zero for in-progress replays
+    while (total_size == 0 or bytes_read < total_size) and event != ParseEvent.END:
         (b, event) = _parse_event(stream, payload_sizes)
         bytes_read += b
         if isinstance(event, Start):

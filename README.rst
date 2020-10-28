@@ -81,7 +81,7 @@ Frame data is elided when you print games, but you can inspect a sample frame wi
 **Event-driven API**::
 
     >>> from slippi.parse import parse
-    >>> from slippi.event import ParseEvent
+    >>> from slippi.parse import ParseEvent
     >>> handlers = {ParseEvent.METADATA: print}
     >>> parse('test/replays/game.slp', handlers)
     Metadata(

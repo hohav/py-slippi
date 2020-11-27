@@ -63,15 +63,8 @@ def _parse_event(event_stream, payload_sizes):
     try: base_pos = event_stream.tell() if event_stream.seekable() else None
     except AttributeError: base_pos = None
 
-    if code in payload_sizes:
-        size = payload_sizes[code]
-    else:
-        updated_size, (code, ) = code, unpack('B', event_stream)
-        try:
-            payload_sizes[code] = updated_size
-            size = payload_sizes[code]
-        except KeyError:
-            raise ValueError('unexpected event type: 0x%02x' % code)
+    try: size = payload_sizes[code]
+    except KeyError: raise ValueError('unexpected event type: 0x%02x' % code)
 
     stream = io.BytesIO(event_stream.read(size))
 
@@ -123,7 +116,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
     event = None
 
     # `total_size` will be zero for in-progress replays
-    while ((total_size == 0 and stream.tell() < stream.getbuffer().nbytes) or bytes_read < total_size) and event != ParseEvent.END:
+    while (total_size == 0 or bytes_read < total_size) and event != ParseEvent.END:
         (b, event) = _parse_event(stream, payload_sizes)
         bytes_read += b
         if isinstance(event, Start):

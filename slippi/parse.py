@@ -1,4 +1,4 @@
-import io, ubjson
+import io, os, ubjson
 
 from .event import EventType, Start, End, Frame
 from .log import log
@@ -200,12 +200,16 @@ def _parse(stream, handlers):
     expect_bytes(b'}', stream)
 
 
+def is_pathlike(x):
+    return isinstance(x, str) or isinstance(x, os.PathLike)
+
+
 def parse(input, handlers):
     """Parses Slippi replay data from `input` (stream or path).
 
     `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
 
-    (f, needs_close) = (open(input, 'rb'), True) if isinstance(input, str) else (input, False)
+    (f, needs_close) = (open(input, 'rb'), True) if is_pathlike(input) else (input, False)
 
     try:
         _parse(f, handlers)

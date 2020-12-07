@@ -268,7 +268,7 @@ class Frame(Base):
             @property
             def post(self):
                 """:py:class:`Post`: Post-frame update data"""
-                if self._post and not isinstance(self._ppst, self.Post):
+                if self._post and not isinstance(self._post, self.Post):
                     self._post = self.Post._parse(self._post)
                 return self._post
 

@@ -261,14 +261,14 @@ class Frame(Base):
             @property
             def pre(self):
                 """:py:class:`Pre`: Pre-frame update data"""
-                if not isinstance(self._pre, self.Pre):
+                if self._pre and not isinstance(self._pre, self.Pre):
                     self._pre = self.Pre._parse(self._pre)
                 return self._pre
 
             @property
             def post(self):
-                """:py:class:`Post`: Pre-frame update data"""
-                if not isinstance(self._post, self.Post):
+                """:py:class:`Post`: Post-frame update data"""
+                if self._post and not isinstance(self._post, self.Post):
                     self._post = self.Post._parse(self._post)
                 return self._post
 

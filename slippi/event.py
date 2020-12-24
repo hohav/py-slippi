@@ -1,6 +1,7 @@
+from typing import Tuple, Union
+
 from . import id as sid
 from .util import *
-
 
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
 FIRST_FRAME_INDEX = -123
@@ -22,7 +23,15 @@ class EventType(IntEnum):
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
-    def __init__(self, is_teams, players, random_seed, slippi, stage, is_pal = None, is_frozen_ps = None):
+    is_teams: bool
+    players: Tuple[Union["Player", None]]
+    random_seed: int
+    slippi: "Slippi"
+    stage: sid.Stage
+    is_pal: Union[bool, None]
+    is_frozen_ps: Union[bool, None]
+
+    def __init__(self, is_teams: bool, players: Tuple[Union["Player", None]], random_seed: int, slippi: "Slippi", stage: sid.Stage, is_pal: Union[bool, None] = None, is_frozen_ps: Union[bool, None] = None):
         self.is_teams = is_teams #: bool: True if this was a teams game
         self.players = players #: tuple(:py:class:`Player` | None): Players in this game by port (port 1 is at index 0; empty ports will contain None)
         self.random_seed = random_seed #: int: Random seed before the game start
@@ -112,7 +121,9 @@ class Start(Base):
     class Slippi(Base):
         """Information about the Slippi recorder that generated this replay."""
 
-        def __init__(self, version):
+        version: "Version"
+
+        def __init__(self, version: "Version"):
             self.version = version #: :py:class:`Version`: Slippi version number
 
         @classmethod
@@ -126,7 +137,12 @@ class Start(Base):
 
 
         class Version(Base):
-            def __init__(self, major, minor, revision, build = None):
+
+            major: int
+            minor: int
+            revision: int
+
+            def __init__(self, major: int, minor: int, revision: int, build = None):
                 self.major = major #: int:
                 self.minor = minor #: int:
                 self.revision = revision #: int:
@@ -142,7 +158,16 @@ class Start(Base):
 
 
     class Player(Base):
-        def __init__(self, character, type, stocks, costume, team, ucf = None, tag = None):
+
+        character: sid.CSSCharacter
+        type: "Type"
+        stocks: int
+        costume: int
+        team: Union["Team", None]
+        ucf: "UCF"
+        tag: Union[str, None]
+
+        def __init__(self, character: sid.CSSCharacter, type: "Type", stocks: int, costume: int, team: Union["Team", None], ucf: "UCF" = None, tag: Union[str, None] = None):
             self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
             self.type = type #: :py:class:`Type`: Player type (human/cpu)
             self.stocks = stocks #: int: Starting stock count
@@ -169,7 +194,11 @@ class Start(Base):
 
 
         class UCF(Base):
-            def __init__(self, dash_back = None, shield_drop = None):
+
+            dash_back: "DashBack"
+            shield_drop: "ShieldDrop"
+
+            def __init__(self, dash_back: "DashBack" = None, shield_drop: "ShieldDrop" = None):
                 self.dash_back = dash_back or self.DashBack.OFF #: :py:class:`DashBack`: UCF dashback state
                 self.shield_drop = shield_drop or self.ShieldDrop.OFF #: :py:class:`ShieldDrop`: UCF shield drop state
 
@@ -194,7 +223,10 @@ class Start(Base):
 class End(Base):
     """Information about the end of the game."""
 
-    def __init__(self, method, lras_initiator = None):
+    method: "Method"
+    lras_initiator: Union[int, None]
+
+    def __init__(self, method: "Method", lras_initiator: Union[int, None] = None):
         self.method = method #: :py:class:`Method`: `changed(2.0.0)` How the game ended
         self.lras_initiator = lras_initiator #: int | None: `added(2.0.0)` Index of player that LRAS'd, if any
 
@@ -227,7 +259,13 @@ class Frame(Base):
 
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
-    def __init__(self, index):
+    index: int
+    ports: Tuple[Union["Port", None]]
+    items: Tuple["Item"]
+    start: Union["Start", None]
+    end: Union["End", None]
+
+    def __init__(self, index: int):
         self.index = index
         self.ports = [None, None, None, None] #: tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)
         self.items = [] #: tuple(:py:class:`Item`): `added(3.0.0)` Active items (includes projectiles)
@@ -243,6 +281,9 @@ class Frame(Base):
         """Frame data for a given port. Can include two characters' frame data (ICs)."""
 
         __slots__ = 'leader', 'follower'
+
+        leader: "Data"
+        follower: Union["Data", None]
 
         def __init__(self):
             self.leader = self.Data() #: :py:class:`Data`: Frame data for the controlled character
@@ -278,7 +319,18 @@ class Frame(Base):
 
                 __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x', 'damage'
 
-                def __init__(self, state, position, direction, joystick, cstick, triggers, buttons, random_seed, raw_analog_x = None, damage = None):
+                state: Union[sid.ActionState, int]
+                position: "Position"
+                direction: "Direction"
+                joystick: "Position"
+                cstick: "Position"
+                triggers: "Triggers"
+                buttons: "Buttons"
+                random_seed: int
+                raw_analog_x: Union[int, None]
+                damage: Union[float, None]
+                
+                def __init__(self, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", joystick: "Position", cstick: "Position", triggers: "Triggers", buttons: "Buttons", random_seed: int, raw_analog_x: Union[int, None] = None, damage: Union[float, None] = None):
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = position #: :py:class:`Position`: Character's position
                     self.direction = direction #: :py:class:`Direction`: Direction the character is facing
@@ -320,7 +372,25 @@ class Frame(Base):
 
                 __slots__ = 'character', 'state', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'state_age', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
 
-                def __init__(self, character, state, position, direction, damage, shield, stocks, last_attack_landed, last_hit_by, combo_count, state_age = None, flags = None, hit_stun = None, airborne = None, ground = None, jumps = None, l_cancel = None):
+                character: sid.InGameCharacter
+                state: Union[sid.ActionState, int]
+                position: "Position"
+                direction: "Direction"
+                damage: float
+                shield: float
+                stocks: int
+                last_attack_landed: Union["Attack", int, None]
+                last_hit_by: Union[int, None]
+                combo_count: int
+                state_age: Union[float, None]
+                flags: Union["StateFlags", None]
+                hit_stun: Union[float, None]
+                airborne: Union[bool, None]
+                ground: Union[int, None]
+                jumps: Union[int, None]
+                l_cancel: Union["LCancel", None]
+                
+                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", damage: float, shield: float, stocks: int, last_attack_landed: Union["Attack", int, None], last_hit_by: Union[int, None], combo_count: int, state_age: Union[float, None] = None, flags: Union["StateFlags", None] = None, hit_stun: Union[float, None] = None, airborne: Union[bool, None] = None, ground: Union[int, None] = None, jumps: Union[int, None] = None, l_cancel: Union["LCancel", None] = None):
                     self.character = character #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = position #: :py:class:`Position`: Character's position
@@ -386,7 +456,16 @@ class Frame(Base):
 
         __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
 
-        def __init__(self, type, state, direction, velocity, position, damage, timer, spawn_id):
+        type: sid.Item
+        state: int
+        direction: "Direction"
+        velocity: "Velocity"
+        position: "Position"
+        damage: int
+        timer: int
+        spawn_id: int
+
+        def __init__(self, type: sid.Item, state: int, direction: "Direction", velocity: "Velocity", position: "Position", damage: int, timer: int, spawn_id: int):
             self.type = type #: :py:class:`slippi.id.Item`: Item type
             self.state = state #: int: Item's action state
             self.direction = direction #: :py:class:`Direction`: Direction item is facing
@@ -420,7 +499,9 @@ class Frame(Base):
 
         __slots__ = 'random_seed'
 
-        def __init__(self, random_seed):
+        random_seed: int
+
+        def __init__(self, random_seed: int):
             self.random_seed = random_seed
 
         @classmethod
@@ -487,7 +568,10 @@ class Frame(Base):
 class Position(Base):
     __slots__ = 'x', 'y'
 
-    def __init__(self, x, y):
+    x: float
+    y: float
+
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 
@@ -503,7 +587,10 @@ class Position(Base):
 class Velocity(Base):
     __slots__ = 'x', 'y'
 
-    def __init__(self, x, y):
+    x: float
+    y: float
+
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 
@@ -617,7 +704,10 @@ class Attack(IntEnum):
 class Triggers(Base):
     __slots__ = 'logical', 'physical'
 
-    def __init__(self, logical, physical_x, physical_y):
+    logical: float
+    physical: "Physical"
+
+    def __init__(self, logical: float, physical_x: float, physical_y: float):
         self.logical = logical #: float: Processed analog trigger position
         self.physical = self.Physical(physical_x, physical_y) #: :py:class:`Physical`: physical analog trigger positions (useful for APM)
 
@@ -630,7 +720,10 @@ class Triggers(Base):
     class Physical(Base):
         __slots__ = 'l', 'r'
 
-        def __init__(self, l, r):
+        l: float
+        r: float
+
+        def __init__(self, l: float, r: float):
             self.l = l
             self.r = r
 
@@ -643,6 +736,9 @@ class Triggers(Base):
 
 class Buttons(Base):
     __slots__ = 'logical', 'physical'
+
+    logical: "Logical"
+    physical: "Physical"
 
     def __init__(self, logical, physical):
         self.logical = self.Logical(logical) #: :py:class:`Logical`: Processed button-state bitmask

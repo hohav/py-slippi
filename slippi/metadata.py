@@ -1,5 +1,6 @@
 import re
 from datetime import datetime, timedelta, timezone
+from typing import Dict, Tuple, Union
 
 from . import event as evt
 from . import id as sid
@@ -8,7 +9,14 @@ from .util import *
 
 class Metadata(Base):
     """Miscellaneous data not directly provided by Melee."""
-    def __init__(self, date, duration, platform, players, console_name=None):
+
+    date: datetime
+    duration: int
+    platform: "Platform"
+    players: Tuple[Union["Player", None]]
+    console_name: Union[str, None]
+
+    def __init__(self, date: datetime, duration: int, platform: "Platform", players: Tuple[Union["Player", None]], console_name: Union[str, None] = None):
         self.date = date #: datetime: Game start date & time
         self.duration = duration #: int: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
@@ -39,7 +47,11 @@ class Metadata(Base):
 
 
     class Player(Base):
-        def __init__(self, characters, netplay=None):
+
+        characters: Dict[sid.InGameCharacter, int]
+        netplay: Union["Netplay", None]
+
+        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Union["Netplay", None] = None):
             self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
             self.netplay = netplay #: :py:class:`Netplay` | None: Netplay info (Dolphin-only)
 
@@ -60,7 +72,11 @@ class Metadata(Base):
 
 
         class Netplay(Base):
-            def __init__(self, code, name):
+
+            code: str
+            name: str
+
+            def __init__(self, code: str, name: str):
                 self.code = code #: str: Netplay code (e.g. "ABCD#123")
                 self.name = name #: str: Netplay nickname
 

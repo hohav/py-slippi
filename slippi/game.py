@@ -1,14 +1,23 @@
+import io
 from logging import debug
+from typing import List, Union
 
-from .event import FIRST_FRAME_INDEX
-from .parse import parse, ParseEvent
+from .event import FIRST_FRAME_INDEX, End, Frame, Start
+from .metadata import Metadata
+from .parse import ParseEvent, parse
 from .util import *
 
 
 class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
-    def __init__(self, input):
+    start: Start
+    frames: List[Frame]
+    end: End
+    metadata: Metadata
+    metadata_raw: dict
+
+    def __init__(self, input: Union[io.BytesIO, str]):
         """Parses Slippi replay data from `input` (stream or path)."""
 
         self.start = None

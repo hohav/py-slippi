@@ -1,6 +1,10 @@
-import io, os, ubjson
+import io
+import os
+from typing import Callable, Dict, Union
 
-from .event import EventType, Start, End, Frame
+import ubjson
+
+from .event import End, EventType, Frame, Start
 from .log import log
 from .metadata import Metadata
 from .util import *
@@ -175,7 +179,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler(current_frame)
 
 
-def _parse(stream, handlers):
+def _parse(stream: io.BytesIO, handlers: Dict[ParseEvent, Callable[..., None]]):
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
@@ -204,7 +208,7 @@ def is_pathlike(x):
     return isinstance(x, str) or isinstance(x, os.PathLike)
 
 
-def parse(input, handlers):
+def parse(input: Union[io.BytesIO, str], handlers: Dict[ParseEvent, Callable[..., None]]):
     """Parses Slippi replay data from `input` (stream or path).
 
     `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""

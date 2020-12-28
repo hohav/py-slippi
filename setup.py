@@ -18,6 +18,7 @@ setuptools.setup(
     name="py-slippi",
     packages=setuptools.find_packages(),
     python_requires='~=3.6',
+    tests_require=['mypy'],
     url="https://github.com/hohav/py-slippi",
     version="1.5.1",
 )

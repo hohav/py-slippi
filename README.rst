@@ -7,7 +7,7 @@ Py-slippi is a Python parser for `.slp <https://github.com/project-slippi/slippi
 Installation
 ============
 
-*Requires Python >= 3.6*. To install, run the following command (optionally inside a `virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_):
+*Requires Python >= 3.7*. To install, run the following command (optionally inside a `virtual environment <https://packaging.python.org/tutorials/installing-packages/#optionally-create-a-virtual-environment>`_):
 
     pip install py-slippi
 

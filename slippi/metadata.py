@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional, Tuple
@@ -12,11 +14,11 @@ class Metadata(Base):
 
     date: datetime
     duration: int
-    platform: "Platform"
-    players: Tuple[Optional["Player"]]
+    platform: Metadata.Platform
+    players: Tuple[Optional[Metadata.Player]]
     console_name: Optional[str]
 
-    def __init__(self, date: datetime, duration: int, platform: "Platform", players: Tuple[Optional["Player"]], console_name: Optional[str] = None):
+    def __init__(self, date: datetime, duration: int, platform: Metadata.Platform, players: Tuple[Optional[Metadata.Player]], console_name: Optional[str] = None):
         self.date = date #: datetime: Game start date & time
         self.duration = duration #: int: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)

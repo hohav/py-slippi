@@ -139,7 +139,6 @@ class Start(Base):
 
 
         class Version(Base):
-
             major: int
             minor: int
             revision: int
@@ -160,7 +159,6 @@ class Start(Base):
 
 
     class Player(Base):
-
         character: sid.CSSCharacter
         type: Start.Player.Type
         stocks: int
@@ -196,7 +194,6 @@ class Start(Base):
 
 
         class UCF(Base):
-
             dash_back: Start.Player.UCF.DashBack
             shield_drop: Start.Player.UCF.ShieldDrop
 
@@ -331,7 +328,7 @@ class Frame(Base):
                 random_seed: int
                 raw_analog_x: Optional[int]
                 damage: Optional[float]
-                
+
                 def __init__(self, state: Union[sid.ActionState, int], position: Position, direction: Direction, joystick: Position, cstick: Position, triggers: Triggers, buttons: Buttons, random_seed: int, raw_analog_x: Optional[int] = None, damage: Optional[float] = None):
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = position #: :py:class:`Position`: Character's position
@@ -391,7 +388,7 @@ class Frame(Base):
                 ground: Optional[int]
                 jumps: Optional[int]
                 l_cancel: Optional[LCancel]
-                
+
                 def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: Position, direction: Direction, damage: float, shield: float, stocks: int, last_attack_landed: Optional[Union[Attack, int]], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional[StateFlags] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional[LCancel] = None):
                     self.character = character #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state

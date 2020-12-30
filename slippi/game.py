@@ -1,6 +1,6 @@
-import io
+import io, os
 from logging import debug
-from typing import List, Optional, Union
+from typing import BinaryIO, List, Optional, Union
 
 from .event import FIRST_FRAME_INDEX, End, Frame, Start
 from .metadata import Metadata
@@ -11,38 +11,29 @@ from .util import *
 class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
-    start: Optional[Start]
-    frames: List[Frame]
-    end: Optional[End]
-    metadata: Optional[Metadata]
-    metadata_raw: Optional[dict]
+    start: Optional[Start] #: Information about the start of the game
+    frames: List[Frame] #: Every frame of the game, indexed by frame number
+    end: Optional[End] #: Information about the end of the game
+    metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
+    metadata_raw: Optional[dict] #: Raw JSON metadata, for debugging and forward-compatibility
 
-    def __init__(self, input: Union[io.BytesIO, str]):
-        """Parses Slippi replay data from `input` (stream or path)."""
+    def __init__(self, input: Union[BinaryIO, str, os.PathLike]):
+        """Parse a Slippi replay.
+
+        :param input: replay file object or path"""
 
         self.start = None
-        """:py:class:`slippi.event.Start`: Information about the start of the game"""
-
         self.frames = []
-        """list(:py:class:`slippi.event.Frame`): Every frame of the game, indexed by frame number"""
-
         self.end = None
-        """:py:class:`slippi.event.End`: Information about the end of the game"""
-
         self.metadata = None
-        """:py:class:`slippi.metadata.Metadata`: Miscellaneous data not directly provided by Melee"""
-
         self.metadata_raw = None
-        """dict: Raw JSON metadata, for debugging and forward-compatibility"""
 
-        handlers = {
+        parse(input, {
             ParseEvent.START: lambda x: setattr(self, 'start', x),
             ParseEvent.FRAME: self._add_frame,
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
-            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}
-
-        parse(input, handlers)
+            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)})
 
     def _add_frame(self, f):
         idx = f.index - FIRST_FRAME_INDEX

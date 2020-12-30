@@ -16,12 +16,12 @@ class ParseEvent(Enum):
 
     METADATA = 'metadata' #: :py:class:`slippi.metadata.Metadata`:
     METADATA_RAW = 'metadata_raw' #: dict:
-    START = 'start' #: :py:class:`Start`:
-    FRAME = 'frame' #: :py:class:`Frame`:
-    END = 'end' #: :py:class:`End`:
-    FRAME_START = 'frame_start' #: :py:class:`Frame.Start`:
-    ITEM = 'item' #: :py:class:`Frame.Item`:
-    FRAME_END = 'frame_end' #: :py:class:`Frame.End`:
+    START = 'start' #: :py:class:`slippi.event.Start`:
+    FRAME = 'frame' #: :py:class:`slippi.event.Frame`:
+    END = 'end' #: :py:class:`slippi.event.End`:
+    FRAME_START = 'frame_start' #: :py:class:`slippi.event.Frame.Start`:
+    ITEM = 'item' #: :py:class:`slippi.event.Frame.Item`:
+    FRAME_END = 'frame_end' #: :py:class:`slippi.event.Frame.End`:
 
 
 class ParseError(IOError):

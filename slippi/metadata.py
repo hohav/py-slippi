@@ -12,18 +12,18 @@ from .util import *
 class Metadata(Base):
     """Miscellaneous data not directly provided by Melee."""
 
-    date: datetime
-    duration: int
-    platform: Metadata.Platform
-    players: Tuple[Optional[Metadata.Player]]
-    console_name: Optional[str]
+    date: datetime #: Game start date & time
+    duration: int #: Duration of game, in frames
+    platform: Metadata.Platform #: Platform the game was played on (console/dolphin)
+    players: Tuple[Optional[Metadata.Player]] #: Player metadata by port (port 1 is at index 0; empty ports will contain None)
+    console_name: Optional[str] #: Name of the console the game was played on, if any
 
     def __init__(self, date: datetime, duration: int, platform: Metadata.Platform, players: Tuple[Optional[Metadata.Player]], console_name: Optional[str] = None):
-        self.date = date #: datetime: Game start date & time
-        self.duration = duration #: int: Duration of game, in frames
-        self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
-        self.players = players #: tuple(:py:class:`Player` | None): Player metadata by port (port 1 is at index 0; empty ports will contain None)
-        self.console_name = console_name #: str | None: Name of the console the game was played on, if any
+        self.date = date
+        self.duration = duration
+        self.platform = platform
+        self.players = players
+        self.console_name = console_name
 
     @classmethod
     def _parse(cls, json):
@@ -49,13 +49,12 @@ class Metadata(Base):
 
 
     class Player(Base):
-
-        characters: Dict[sid.InGameCharacter, int]
-        netplay: Optional[Metadata.Player.Netplay]
+        characters: Dict[sid.InGameCharacter, int] #: Character(s) used, with usage duration in frames (for Zelda/Sheik)
+        netplay: Optional[Metadata.Player.Netplay] #: Netplay info (Dolphin-only)
 
         def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Metadata.Player.Netplay] = None):
-            self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
-            self.netplay = netplay #: :py:class:`Netplay` | None: Netplay info (Dolphin-only)
+            self.characters = characters
+            self.netplay = netplay
 
         @classmethod
         def _parse(cls, json):
@@ -74,13 +73,12 @@ class Metadata(Base):
 
 
         class Netplay(Base):
-
-            code: str
-            name: str
+            code: str #: Netplay code (e.g. "ABCD#123")
+            name: str #: Netplay nickname
 
             def __init__(self, code: str, name: str):
-                self.code = code #: str: Netplay code (e.g. "ABCD#123")
-                self.name = name #: str: Netplay nickname
+                self.code = code
+                self.name = name
 
             def __eq__(self, other):
                 if not isinstance(other, self.__class__):

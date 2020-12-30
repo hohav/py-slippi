@@ -25,22 +25,22 @@ class EventType(IntEnum):
 class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
-    is_teams: bool
-    players: Tuple[Optional[Start.Player]]
-    random_seed: int
-    slippi: Start.Slippi
-    stage: sid.Stage
-    is_pal: Optional[bool]
-    is_frozen_ps: Optional[bool]
+    is_teams: bool #: True if this was a teams game
+    players: Tuple[Optional[Start.Player]] #: Players in this game by port (port 1 is at index 0; empty ports will contain None)
+    random_seed: int #: Random seed before the game start
+    slippi: Start.Slippi #: Information about the Slippi recorder that generated this replay
+    stage: sid.Stage #: Stage on which this game was played
+    is_pal: Optional[bool] #: `added(1.5.0)` True if this was a PAL version of Melee
+    is_frozen_ps: Optional[bool] #: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
 
     def __init__(self, is_teams: bool, players: Tuple[Optional[Start.Player]], random_seed: int, slippi: Start.Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
-        self.is_teams = is_teams #: bool: True if this was a teams game
-        self.players = players #: tuple(:py:class:`Player` | None): Players in this game by port (port 1 is at index 0; empty ports will contain None)
-        self.random_seed = random_seed #: int: Random seed before the game start
-        self.slippi = slippi #: :py:class:`Slippi`: Information about the Slippi recorder that generated this replay
-        self.stage = stage #: :py:class:`slippi.id.Stage`: Stage on which this game was played
-        self.is_pal = is_pal #: bool | None: `added(1.5.0)` True if this was a PAL version of Melee
-        self.is_frozen_ps = is_frozen_ps #: bool | None: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
+        self.is_teams = is_teams
+        self.players = players
+        self.random_seed = random_seed
+        self.slippi = slippi
+        self.stage = stage
+        self.is_pal = is_pal
+        self.is_frozen_ps = is_frozen_ps
 
     @classmethod
     def _parse(cls, stream):
@@ -123,10 +123,10 @@ class Start(Base):
     class Slippi(Base):
         """Information about the Slippi recorder that generated this replay."""
 
-        version: Start.Slippi.Version
+        version: Start.Slippi.Version #: Slippi version number
 
         def __init__(self, version: Start.Slippi.Version):
-            self.version = version #: :py:class:`Version`: Slippi version number
+            self.version = version
 
         @classmethod
         def _parse(cls, stream):
@@ -139,14 +139,15 @@ class Start(Base):
 
 
         class Version(Base):
+
             major: int
             minor: int
             revision: int
 
             def __init__(self, major: int, minor: int, revision: int, build = None):
-                self.major = major #: int:
-                self.minor = minor #: int:
-                self.revision = revision #: int:
+                self.major = major
+                self.minor = minor
+                self.revision = revision
                 # build was obsoleted in 2.0.0, and never held a nonzero value
 
             def __repr__(self):
@@ -159,22 +160,22 @@ class Start(Base):
 
 
     class Player(Base):
-        character: sid.CSSCharacter
-        type: Start.Player.Type
-        stocks: int
-        costume: int
-        team: Optional[Start.Player.Team]
-        ucf: Start.Player.UCF
-        tag: Optional[str]
+        character: sid.CSSCharacter #: Character selected
+        type: Start.Player.Type #: Player type (human/cpu)
+        stocks: int #: Starting stock count
+        costume: int #: Costume ID
+        team: Optional[Start.Player.Team] #: Team, if this was a teams game
+        ucf: Start.Player.UCF #: UCF feature toggles
+        tag: Optional[str] #: Name tag
 
         def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
-            self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
-            self.type = type #: :py:class:`Type`: Player type (human/cpu)
-            self.stocks = stocks #: int: Starting stock count
-            self.costume = costume #: int: Costume ID
-            self.team = team #: :py:class:`Team` | None: Team, if this was a teams game
-            self.ucf = ucf or self.UCF() #: :py:class:`UCF`: UCF feature toggles
-            self.tag = tag #: str | None: Name tag
+            self.character = character
+            self.type = type
+            self.stocks = stocks
+            self.costume = costume
+            self.team = team
+            self.ucf = ucf or self.UCF()
+            self.tag = tag
 
         def __eq__(self, other):
             if not isinstance(other, self.__class__):
@@ -194,12 +195,12 @@ class Start(Base):
 
 
         class UCF(Base):
-            dash_back: Start.Player.UCF.DashBack
-            shield_drop: Start.Player.UCF.ShieldDrop
+            dash_back: Start.Player.UCF.DashBack #: UCF dashback status
+            shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
 
             def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
-                self.dash_back = dash_back or self.DashBack.OFF #: :py:class:`DashBack`: UCF dashback state
-                self.shield_drop = shield_drop or self.ShieldDrop.OFF #: :py:class:`ShieldDrop`: UCF shield drop state
+                self.dash_back = dash_back or self.DashBack.OFF
+                self.shield_drop = shield_drop or self.ShieldDrop.OFF
 
             def __eq__(self, other):
                 if not isinstance(other, self.__class__):
@@ -222,12 +223,12 @@ class Start(Base):
 class End(Base):
     """Information about the end of the game."""
 
-    method: End.Method
-    lras_initiator: Optional[int]
+    method: End.Method #: `changed(2.0.0)` How the game ended
+    lras_initiator: Optional[int] #: `added(2.0.0)` Index of player that LRAS'd, if any
 
     def __init__(self, method: End.Method, lras_initiator: Optional[int] = None):
-        self.method = method #: :py:class:`Method`: `changed(2.0.0)` How the game ended
-        self.lras_initiator = lras_initiator #: int | None: `added(2.0.0)` Index of player that LRAS'd, if any
+        self.method = method
+        self.lras_initiator = lras_initiator
 
     @classmethod
     def _parse(cls, stream):
@@ -259,17 +260,17 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Sequence[Optional[Frame.Port]]
-    items: Sequence[Frame.Item]
-    start: Optional[Frame.Start]
-    end: Optional[Frame.End]
+    ports: Sequence[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
+    items: Sequence[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
+    start: Optional[Frame.Start] #: `added(2.2.0)` Start-of-frame data
+    end: Optional[Frame.End] #: `added(2.2.0)` End-of-frame data
 
     def __init__(self, index: int):
         self.index = index
-        self.ports = [None, None, None, None] #: tuple(:py:class:`Port` | None): Frame data for each port (port 1 is at index 0; empty ports will contain None)
-        self.items = [] #: tuple(:py:class:`Item`): `added(3.0.0)` Active items (includes projectiles)
-        self.start = None #: :py:class:`Start` | None: `added(2.2.0)` Start-of-frame data
-        self.end = None #: :py:class:`End` | None: `added(2.2.0)` End-of-frame data
+        self.ports = [None, None, None, None]
+        self.items = []
+        self.start = None
+        self.end = None
 
     def _finalize(self):
         self.ports = tuple(self.ports)
@@ -281,12 +282,12 @@ class Frame(Base):
 
         __slots__ = 'leader', 'follower'
 
-        leader: Frame.Port.Data
-        follower: Optional[Frame.Port.Data]
+        leader: Frame.Port.Data #: Frame data for the controlled character
+        follower: Optional[Frame.Port.Data] #: Frame data for the follower (Nana), if any
 
         def __init__(self):
-            self.leader = self.Data() #: :py:class:`Data`: Frame data for the controlled character
-            self.follower = None #: :py:class:`Data` | None: Frame data for the follower (Nana), if any
+            self.leader = self.Data()
+            self.follower = None
 
 
         class Data(Base):
@@ -299,15 +300,15 @@ class Frame(Base):
                 self._post = None
 
             @property
-            def pre(self):
-                """:py:class:`Pre`: Pre-frame update data"""
+            def pre(self) -> Optional[Frame.Port.Data.Pre]:
+                """Pre-frame update data"""
                 if self._pre and not isinstance(self._pre, self.Pre):
                     self._pre = self.Pre._parse(self._pre)
                 return self._pre
 
             @property
-            def post(self):
-                """:py:class:`Post`: Post-frame update data"""
+            def post(self) -> Optional[Frame.Port.Data.Post]:
+                """Post-frame update data"""
                 if self._post and not isinstance(self._post, self.Post):
                     self._post = self.Post._parse(self._post)
                 return self._post
@@ -371,42 +372,42 @@ class Frame(Base):
 
                 __slots__ = 'character', 'state', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'state_age', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
 
-                character: sid.InGameCharacter
-                state: Union[sid.ActionState, int]
-                position: Position
-                direction: Direction
-                damage: float
-                shield: float
-                stocks: int
-                last_attack_landed: Optional[Union[Attack, int]]
-                last_hit_by: Optional[int]
-                combo_count: int
-                state_age: Optional[float]
-                flags: Optional[StateFlags]
-                hit_stun: Optional[float]
-                airborne: Optional[bool]
-                ground: Optional[int]
-                jumps: Optional[int]
-                l_cancel: Optional[LCancel]
+                character: sid.InGameCharacter #: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
+                state: Union[sid.ActionState, int] #: Character's action state
+                position: Position #: Character's position
+                direction: Direction #: Direction the character is facing
+                damage: float #: Current damage percent
+                shield: float #: Current size of shield
+                stocks: int #: Number of stocks remaining
+                last_attack_landed: Union[Attack, int] #: Last attack that this character landed
+                last_hit_by: Optional[int] #: Port of character that last hit this character
+                combo_count: int #: Combo count as defined by the game
+                state_age: Optional[float] #: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
+                flags: Optional[StateFlags] #: `added(2.0.0)` State flags
+                hit_stun: Optional[float] #: `added(2.0.0)` Number of hitstun frames remaining
+                airborne: Optional[bool] #: `added(2.0.0)` True if character is airborne
+                ground: Optional[int] #: `added(2.0.0)` ID of ground character is standing on, if any
+                jumps: Optional[int] #: `added(2.0.0)` Jumps remaining
+                l_cancel: Optional[LCancel] #: `added(2.0.0)` L-cancel status, if any
 
-                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: Position, direction: Direction, damage: float, shield: float, stocks: int, last_attack_landed: Optional[Union[Attack, int]], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional[StateFlags] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional[LCancel] = None):
-                    self.character = character #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
-                    self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
-                    self.position = position #: :py:class:`Position`: Character's position
-                    self.direction = direction #: :py:class:`Direction`: Direction the character is facing
-                    self.damage = damage #: float: Current damage percent
-                    self.shield = shield #: float: Current size of shield
-                    self.stocks = stocks #: int: Number of stocks remaining
-                    self.last_attack_landed = last_attack_landed #: :py:class:`Attack` | int | None: Last attack that this character landed
-                    self.last_hit_by = last_hit_by #: int | None: Port of character that last hit this character
-                    self.combo_count = combo_count #: int: Combo count as defined by the game
-                    self.state_age = state_age #: float | None: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
-                    self.flags = flags #: :py:class:`StateFlags` | None: `added(2.0.0)` State flags
-                    self.hit_stun = hit_stun #: float | None: `added(2.0.0)` Number of hitstun frames remaining
-                    self.airborne = airborne #: bool | None: `added(2.0.0)` True if character is airborne
-                    self.ground = ground #: int | None: `added(2.0.0)` ID of ground character is standing on, if any
-                    self.jumps = jumps #: int | None: `added(2.0.0)` Jumps remaining
-                    self.l_cancel = l_cancel #: :py:class:`LCancel` | None: `added(2.0.0)` L-cancel status, if any
+                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: Position, direction: Direction, damage: float, shield: float, stocks: int, last_attack_landed: Union[Attack, int], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional[StateFlags] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional[LCancel] = None):
+                    self.character = character
+                    self.state = state
+                    self.position = position
+                    self.direction = direction
+                    self.damage = damage
+                    self.shield = shield
+                    self.stocks = stocks
+                    self.last_attack_landed = last_attack_landed
+                    self.last_hit_by = last_hit_by
+                    self.combo_count = combo_count
+                    self.state_age = state_age
+                    self.flags = flags
+                    self.hit_stun = hit_stun
+                    self.airborne = airborne
+                    self.ground = ground
+                    self.jumps = jumps
+                    self.l_cancel = l_cancel
 
                 @classmethod
                 def _parse(cls, stream):
@@ -455,24 +456,24 @@ class Frame(Base):
 
         __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
 
-        type: sid.Item
-        state: int
-        direction: Direction
-        velocity: Velocity
-        position: Position
-        damage: int
-        timer: int
-        spawn_id: int
+        type: sid.Item #: Item type
+        state: int #: Item's action state
+        direction: Direction #: Direction item is facing
+        velocity: Velocity #: Item's velocity
+        position: Position #: Item's position
+        damage: int #: Amount of damage item has taken
+        timer: int #: Frames remaining until item expires
+        spawn_id: int #: Unique ID per item spawned (0, 1, 2, ...)
 
         def __init__(self, type: sid.Item, state: int, direction: Direction, velocity: Velocity, position: Position, damage: int, timer: int, spawn_id: int):
-            self.type = type #: :py:class:`slippi.id.Item`: Item type
-            self.state = state #: int: Item's action state
-            self.direction = direction #: :py:class:`Direction`: Direction item is facing
-            self.velocity = velocity #: :py:class:`Velocity`: Item's velocity
-            self.position = position #: :py:class:`Position`: Item's position
-            self.damage = damage #: int: Amount of damage item has taken
-            self.timer = timer #: int: Frames remaining until item expires
-            self.spawn_id = spawn_id #: int: Unique ID per item spawned (0, 1, 2, ...)
+            self.type = type
+            self.state = state
+            self.direction = direction
+            self.velocity = velocity
+            self.position = position
+            self.damage = damage
+            self.timer = timer
+            self.spawn_id = spawn_id
 
         @classmethod
         def _parse(cls, stream):
@@ -498,7 +499,7 @@ class Frame(Base):
 
         __slots__ = 'random_seed'
 
-        random_seed: int
+        random_seed: int #: The random seed at the start of the frame
 
         def __init__(self, random_seed: int):
             self.random_seed = random_seed
@@ -506,7 +507,7 @@ class Frame(Base):
         @classmethod
         def _parse(cls, stream):
             (random_seed,) = unpack('I', stream)
-            random_seed = random_seed #: int: The random seed at the start of the frame
+            random_seed = random_seed
             return cls(random_seed)
 
         def __eq__(self, other):
@@ -703,12 +704,12 @@ class Attack(IntEnum):
 class Triggers(Base):
     __slots__ = 'logical', 'physical'
 
-    logical: float
-    physical: Triggers.Physical
+    logical: float #: Processed analog trigger position
+    physical: Triggers.Physical #: Physical analog trigger positions (useful for APM)
 
     def __init__(self, logical: float, physical_x: float, physical_y: float):
-        self.logical = logical #: float: Processed analog trigger position
-        self.physical = self.Physical(physical_x, physical_y) #: :py:class:`Physical`: physical analog trigger positions (useful for APM)
+        self.logical = logical
+        self.physical = self.Physical(physical_x, physical_y)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -736,12 +737,12 @@ class Triggers(Base):
 class Buttons(Base):
     __slots__ = 'logical', 'physical'
 
-    logical: Buttons.Logical
-    physical: Buttons.Physical
+    logical: Buttons.Logical #: Processed button-state bitmask
+    physical: Buttons.Physical #: Physical button-state bitmask
 
     def __init__(self, logical, physical):
-        self.logical = self.Logical(logical) #: :py:class:`Logical`: Processed button-state bitmask
-        self.physical = self.Physical(physical) #: :py:class:`Physical`: Physical button-state bitmask
+        self.logical = self.Logical(logical)
+        self.physical = self.Physical(physical)
 
     def __eq__(self, other):
         if not isinstance(other, Buttons):

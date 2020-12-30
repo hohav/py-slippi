@@ -51,9 +51,9 @@ class Metadata(Base):
     class Player(Base):
 
         characters: Dict[sid.InGameCharacter, int]
-        netplay: Optional["Netplay"]
+        netplay: Optional[Metadata.Player.Netplay]
 
-        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional["Netplay"] = None):
+        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Metadata.Player.Netplay] = None):
             self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
             self.netplay = netplay #: :py:class:`Netplay` | None: Netplay info (Dolphin-only)
 

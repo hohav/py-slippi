@@ -1,5 +1,6 @@
-import io
-import os
+from __future__ import annotations
+
+import io, os
 from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson
@@ -24,14 +25,14 @@ class ParseEvent(Enum):
 
 
 class ParseError(IOError):
-    def __init__(self, message, name = None, pos = None):
+    def __init__(self, message, filename = None, pos = None):
         super().__init__(message)
-        self.name = name
+        self.filename = filename
         self.pos = pos
 
     def __str__(self):
         return 'Parse error (%s %s): %s' % (
-            self.name or '?',
+            self.filename or '?',
             '@0x%x' % self.pos if self.pos else '?',
             super().__str__())
 
@@ -179,7 +180,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler(current_frame)
 
 
-def _parse(stream: io.BytesIO, handlers: Dict[ParseEvent, Callable[..., None]]):
+def _parse(stream: BinaryIO, handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
@@ -204,33 +205,35 @@ def _parse(stream: io.BytesIO, handlers: Dict[ParseEvent, Callable[..., None]]):
     expect_bytes(b'}', stream)
 
 
-def is_pathlike(x):
-    return isinstance(x, str) or isinstance(x, os.PathLike)
-
-
-def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]):
-    """Parses Slippi replay data from `input` (stream or path).
-
-    `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
-
-    (f, needs_close) = (open(input, 'rb'), True) if is_pathlike(input) else (input, False)
+def _parse_try(input, handlers):
+    """Wrap parsing exceptions with additional information."""
 
     try:
-        _parse(f, handlers)
+        _parse(input, handlers)
     except Exception as e:
         e = e if isinstance(e, ParseError) else ParseError(str(e))
 
-        try: e.name = f.name
+        try: e.filename = input.name # type: ignore
         except AttributeError: pass
 
         try:
             # prefer provided position info, as it will be more accurate
-            if not e.pos and f.seekable():
-                e.pos = f.tell()
+            if not e.pos and input.seekable(): # type: ignore
+                e.pos = input.tell() # type: ignore
         # not all stream-like objects support `seekable` (e.g. HTTP requests)
         except AttributeError: pass
 
         raise e
-    finally:
-        if needs_close:
-            f.close()
+
+
+def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
+    """Parse a Slippi replay.
+
+    :param input: replay file object or path
+    :param handlers: dict of parse event keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
+
+    if isinstance(input, BinaryIO):
+        _parse_try(input, handlers)
+    else:
+        with open(input, 'rb') as f:
+            _parse_try(f, handlers)

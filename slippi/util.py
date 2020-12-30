@@ -1,4 +1,5 @@
 import enum, os, re, struct, sys
+from typing import Tuple
 
 from .log import log
 
@@ -55,7 +56,7 @@ def expect_bytes(expected_bytes, stream):
 
 
 class Base:
-    __slots__ = []
+    __slots__: Tuple = ()
 
     def _attr_repr(self, attr):
         return attr + '=' + _format(getattr(self, attr))

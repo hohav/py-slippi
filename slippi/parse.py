@@ -1,6 +1,6 @@
 import io
 import os
-from typing import Callable, Dict, Union
+from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson
 
@@ -208,7 +208,7 @@ def is_pathlike(x):
     return isinstance(x, str) or isinstance(x, os.PathLike)
 
 
-def parse(input: Union[io.BytesIO, str], handlers: Dict[ParseEvent, Callable[..., None]]):
+def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]):
     """Parses Slippi replay data from `input` (stream or path).
 
     `handlers` should be a dict of :py:class:`slippi.event.ParseEvent` keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""

@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from . import id as sid
 from .util import *
@@ -24,14 +24,14 @@ class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
     is_teams: bool
-    players: Tuple[Union["Player", None]]
+    players: Tuple[Optional["Player"]]
     random_seed: int
     slippi: "Slippi"
     stage: sid.Stage
-    is_pal: Union[bool, None]
-    is_frozen_ps: Union[bool, None]
+    is_pal: Optional[bool]
+    is_frozen_ps: Optional[bool]
 
-    def __init__(self, is_teams: bool, players: Tuple[Union["Player", None]], random_seed: int, slippi: "Slippi", stage: sid.Stage, is_pal: Union[bool, None] = None, is_frozen_ps: Union[bool, None] = None):
+    def __init__(self, is_teams: bool, players: Tuple[Optional["Player"]], random_seed: int, slippi: "Slippi", stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
         self.is_teams = is_teams #: bool: True if this was a teams game
         self.players = players #: tuple(:py:class:`Player` | None): Players in this game by port (port 1 is at index 0; empty ports will contain None)
         self.random_seed = random_seed #: int: Random seed before the game start
@@ -163,11 +163,11 @@ class Start(Base):
         type: "Type"
         stocks: int
         costume: int
-        team: Union["Team", None]
+        team: Optional["Team"]
         ucf: "UCF"
-        tag: Union[str, None]
+        tag: Optional[str]
 
-        def __init__(self, character: sid.CSSCharacter, type: "Type", stocks: int, costume: int, team: Union["Team", None], ucf: "UCF" = None, tag: Union[str, None] = None):
+        def __init__(self, character: sid.CSSCharacter, type: "Type", stocks: int, costume: int, team: Optional["Team"], ucf: "UCF" = None, tag: Optional[str] = None):
             self.character = character #: :py:class:`slippi.id.CSSCharacter`: Character selected
             self.type = type #: :py:class:`Type`: Player type (human/cpu)
             self.stocks = stocks #: int: Starting stock count
@@ -224,9 +224,9 @@ class End(Base):
     """Information about the end of the game."""
 
     method: "Method"
-    lras_initiator: Union[int, None]
+    lras_initiator: Optional[int]
 
-    def __init__(self, method: "Method", lras_initiator: Union[int, None] = None):
+    def __init__(self, method: "Method", lras_initiator: Optional[int] = None):
         self.method = method #: :py:class:`Method`: `changed(2.0.0)` How the game ended
         self.lras_initiator = lras_initiator #: int | None: `added(2.0.0)` Index of player that LRAS'd, if any
 
@@ -260,10 +260,10 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Tuple[Union["Port", None]]
+    ports: Tuple[Optional["Port"]]
     items: Tuple["Item"]
-    start: Union["Start", None]
-    end: Union["End", None]
+    start: Optional["Start"]
+    end: Optional["End"]
 
     def __init__(self, index: int):
         self.index = index
@@ -283,7 +283,7 @@ class Frame(Base):
         __slots__ = 'leader', 'follower'
 
         leader: "Data"
-        follower: Union["Data", None]
+        follower: Optional["Data"]
 
         def __init__(self):
             self.leader = self.Data() #: :py:class:`Data`: Frame data for the controlled character
@@ -327,10 +327,10 @@ class Frame(Base):
                 triggers: "Triggers"
                 buttons: "Buttons"
                 random_seed: int
-                raw_analog_x: Union[int, None]
-                damage: Union[float, None]
+                raw_analog_x: Optional[int]
+                damage: Optional[float]
                 
-                def __init__(self, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", joystick: "Position", cstick: "Position", triggers: "Triggers", buttons: "Buttons", random_seed: int, raw_analog_x: Union[int, None] = None, damage: Union[float, None] = None):
+                def __init__(self, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", joystick: "Position", cstick: "Position", triggers: "Triggers", buttons: "Buttons", random_seed: int, raw_analog_x: Optional[int] = None, damage: Optional[float] = None):
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = position #: :py:class:`Position`: Character's position
                     self.direction = direction #: :py:class:`Direction`: Direction the character is facing
@@ -379,18 +379,18 @@ class Frame(Base):
                 damage: float
                 shield: float
                 stocks: int
-                last_attack_landed: Union["Attack", int, None]
-                last_hit_by: Union[int, None]
+                last_attack_landed: Optional[Union["Attack", int]]
+                last_hit_by: Optional[int]
                 combo_count: int
-                state_age: Union[float, None]
-                flags: Union["StateFlags", None]
-                hit_stun: Union[float, None]
-                airborne: Union[bool, None]
-                ground: Union[int, None]
-                jumps: Union[int, None]
-                l_cancel: Union["LCancel", None]
+                state_age: Optional[float]
+                flags: Optional["StateFlags"]
+                hit_stun: Optional[float]
+                airborne: Optional[bool]
+                ground: Optional[int]
+                jumps: Optional[int]
+                l_cancel: Optional["LCancel"]
                 
-                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", damage: float, shield: float, stocks: int, last_attack_landed: Union["Attack", int, None], last_hit_by: Union[int, None], combo_count: int, state_age: Union[float, None] = None, flags: Union["StateFlags", None] = None, hit_stun: Union[float, None] = None, airborne: Union[bool, None] = None, ground: Union[int, None] = None, jumps: Union[int, None] = None, l_cancel: Union["LCancel", None] = None):
+                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: "Position", direction: "Direction", damage: float, shield: float, stocks: int, last_attack_landed: Optional[Union["Attack", int]], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional["StateFlags"] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional["LCancel"] = None):
                     self.character = character #: :py:class:`slippi.id.InGameCharacter`: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
                     self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
                     self.position = position #: :py:class:`Position`: Character's position

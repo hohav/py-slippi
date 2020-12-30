@@ -6,11 +6,11 @@ with open("README.rst", "r") as fh:
 setuptools.setup(
     author="melkor",
     author_email="hohav@fastmail.com",
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-    ),
+    ],
     description="Parsing library for SSBM replay files",
     install_requires=['py-ubjson', 'termcolor'],
     long_description=long_description,

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 from . import id as sid
 from .util import *
@@ -260,8 +260,8 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Tuple[Optional["Port"]]
-    items: Tuple["Item"]
+    ports: Sequence[Optional["Port"]]
+    items: Sequence["Item"]
     start: Optional["Start"]
     end: Optional["End"]
 

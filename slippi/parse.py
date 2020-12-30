@@ -180,7 +180,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler(current_frame)
 
 
-def _parse(stream: BinaryIO, handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
+def _parse(stream, handlers):
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.

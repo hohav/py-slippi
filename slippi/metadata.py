@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 from . import event as evt
 from . import id as sid
@@ -13,10 +13,10 @@ class Metadata(Base):
     date: datetime
     duration: int
     platform: "Platform"
-    players: Tuple[Union["Player", None]]
-    console_name: Union[str, None]
+    players: Tuple[Optional["Player"]]
+    console_name: Optional[str]
 
-    def __init__(self, date: datetime, duration: int, platform: "Platform", players: Tuple[Union["Player", None]], console_name: Union[str, None] = None):
+    def __init__(self, date: datetime, duration: int, platform: "Platform", players: Tuple[Optional["Player"]], console_name: Optional[str] = None):
         self.date = date #: datetime: Game start date & time
         self.duration = duration #: int: Duration of game, in frames
         self.platform = platform #: :py:class:`Platform`: Platform the game was played on (console/dolphin)
@@ -49,9 +49,9 @@ class Metadata(Base):
     class Player(Base):
 
         characters: Dict[sid.InGameCharacter, int]
-        netplay: Union["Netplay", None]
+        netplay: Optional["Netplay"]
 
-        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Union["Netplay", None] = None):
+        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional["Netplay"] = None):
             self.characters = characters #: dict(:py:class:`slippi.id.InGameCharacter`, int): Character(s) used, with usage duration in frames (for Zelda/Sheik)
             self.netplay = netplay #: :py:class:`Netplay` | None: Netplay info (Dolphin-only)
 

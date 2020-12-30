@@ -1,6 +1,6 @@
 import io
 from logging import debug
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .event import FIRST_FRAME_INDEX, End, Frame, Start
 from .metadata import Metadata
@@ -11,11 +11,11 @@ from .util import *
 class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
-    start: Start
+    start: Optional[Start]
     frames: List[Frame]
-    end: End
-    metadata: Metadata
-    metadata_raw: dict
+    end: Optional[End]
+    metadata: Optional[Metadata]
+    metadata_raw: Optional[dict]
 
     def __init__(self, input: Union[io.BytesIO, str]):
         """Parses Slippi replay data from `input` (stream or path)."""

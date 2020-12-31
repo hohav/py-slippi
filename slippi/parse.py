@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import io, os
+import io, os, pathlib
 from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson
@@ -205,7 +205,7 @@ def _parse(stream, handlers):
     expect_bytes(b'}', stream)
 
 
-def _parse_try(input, handlers):
+def _parse_try(input: BinaryIO, handlers):
     """Wrap parsing exceptions with additional information."""
 
     try:
@@ -226,14 +226,20 @@ def _parse_try(input, handlers):
         raise e
 
 
+def _parse_open(input: os.PathLike, handlers) -> None:
+    with open(input, 'rb') as f:
+        _parse_try(f, handlers)
+
+
 def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
     """Parse a Slippi replay.
 
     :param input: replay file object or path
     :param handlers: dict of parse event keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
 
-    if isinstance(input, BinaryIO):
-        _parse_try(input, handlers)
+    if isinstance(input, str):
+        _parse_open(pathlib.Path(input), handlers)
+    elif isinstance(input, os.PathLike):
+        _parse_open(input, handlers)
     else:
-        with open(input, 'rb') as f:
-            _parse_try(f, handlers)
+        _parse_try(input, handlers)

@@ -37,7 +37,7 @@ html_theme_options = {
     'description': 'Python parser for SSBM replay files',
     'fixed_sidebar': True,
     'github_button': True,
-    'github_repo': "https://github.com/hohav/py-slippi",
+    'github_repo': "py-slippi",
     'github_user': "hohav",
 }
 

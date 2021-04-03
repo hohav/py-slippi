@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Sequence, Tuple, Union
 
 from . import id as sid
-from .util import *
+from .util import Base, IntEnum, IntFlag, unpack, PORTS, try_enum, Enum
 
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
 FIRST_FRAME_INDEX = -123

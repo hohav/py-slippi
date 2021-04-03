@@ -5,7 +5,7 @@ from typing import BinaryIO, List, Optional, Union
 from .event import FIRST_FRAME_INDEX, End, Frame, Start
 from .metadata import Metadata
 from .parse import ParseEvent, parse
-from .util import *
+from .util import Base
 
 
 class Game(Base):

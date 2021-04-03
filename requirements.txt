@@ -1,2 +1,3 @@
 py-ubjson
 termcolor
+mypy

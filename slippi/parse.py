@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-import io, os, pathlib
+import io
+import os
+import pathlib
 from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson

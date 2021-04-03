@@ -1,3 +1,6 @@
+name: Run python tests
+on: pull_request
+
 steps:
 - uses: actions/checkout@v2
 - uses: actions/setup-python@v2

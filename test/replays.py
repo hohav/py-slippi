@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import datetime, glob, os, subprocess, unittest
+from typing import List
 
 from slippi import Game, parse
 from slippi.id import CSSCharacter, InGameCharacter, Item, Stage

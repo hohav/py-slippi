@@ -73,4 +73,4 @@ def setup(app):
 def iad_add_directive_header(self, sig):
     ClassLevelDocumenter.add_directive_header(self, sig)
 
-InstanceAttributeDocumenter.add_directive_header = iad_add_directive_header
+InstanceAttributeDocumenter.add_directive_header = iad_add_directive_header  # type: ignore[assignment]

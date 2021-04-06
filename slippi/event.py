@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Any, BinaryIO, Optional, Iterable, Tuple, Union, List, no_type_check
 
 from . import id as sid
 from .util import *
-
+from io import BytesIO
 # The first frame of the game is indexed -123, counting up to zero (which is when the word "GO" appears). But since players actually get control before frame zero (!!!), we need to record these frames.
 FIRST_FRAME_INDEX = -123
 
@@ -26,14 +26,21 @@ class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
     is_teams: bool #: True if this was a teams game
-    players: Tuple[Optional[Start.Player]] #: Players in this game by port (port 1 is at index 0; empty ports will contain None)
+    players: Tuple[Optional[Start.Player], ...] #: Players in this game by port (port 1 is at index 0; empty ports will contain None)
     random_seed: int #: Random seed before the game start
     slippi: Start.Slippi #: Information about the Slippi recorder that generated this replay
     stage: sid.Stage #: Stage on which this game was played
     is_pal: Optional[bool] #: `added(1.5.0)` True if this was a PAL version of Melee
     is_frozen_ps: Optional[bool] #: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
 
-    def __init__(self, is_teams: bool, players: Tuple[Optional[Start.Player]], random_seed: int, slippi: Start.Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
+    def __init__(self,
+                 is_teams: bool,
+                 players: Tuple[Optional[Start.Player], ...],
+                 random_seed: int,
+                 slippi: Start.Slippi,
+                 stage: sid.Stage,
+                 is_pal: Optional[bool] = None,
+                 is_frozen_ps: Optional[bool] = None) -> None:
         self.is_teams = is_teams
         self.players = players
         self.random_seed = random_seed
@@ -43,7 +50,7 @@ class Start(Base):
         self.is_frozen_ps = is_frozen_ps
 
     @classmethod
-    def _parse(cls, stream):
+    def _parse(cls, stream: BytesIO) -> Start:
         slippi_ = cls.Slippi._parse(stream)
 
         stream.read(8)
@@ -65,6 +72,7 @@ class Start(Base):
             try: type = cls.Player.Type(type)
             except ValueError: type = None
 
+            player: Optional[Start.Player]
             if type is not None:
                 character = sid.CSSCharacter(character)
                 team = cls.Player.Team(team) if is_teams else None
@@ -83,7 +91,7 @@ class Start(Base):
                 dash_back = cls.Player.UCF.DashBack(dash_back)
                 shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
                 if players[i]:
-                    players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
+                    players[i].ucf = cls.Player.UCF(dash_back, shield_drop)  # type: ignore
         except EOFError: pass
 
         try: # v1.3.0
@@ -94,7 +102,7 @@ class Start(Base):
                         null_pos = tag_bytes.index(0)
                         tag_bytes = tag_bytes[:null_pos]
                     except ValueError: pass
-                    players[i].tag = tag_bytes.decode('shift-jis').rstrip()
+                    players[i].tag = tag_bytes.decode('shift-jis').rstrip()  # type: ignore
         except EOFError: pass
 
         # v1.5.0
@@ -114,7 +122,7 @@ class Start(Base):
             is_pal=is_pal,
             is_frozen_ps=is_frozen_ps)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.is_teams == other.is_teams and self.players == other.players and self.random_seed == other.random_seed and self.slippi == other.slippi and self.stage is other.stage
@@ -125,14 +133,14 @@ class Start(Base):
 
         version: Start.Slippi.Version #: Slippi version number
 
-        def __init__(self, version: Start.Slippi.Version):
+        def __init__(self, version: Start.Slippi.Version) -> None:
             self.version = version
 
         @classmethod
-        def _parse(cls, stream):
+        def _parse(cls, stream: BytesIO) -> Start.Slippi:
             return cls(cls.Version(*unpack('BBBB', stream)))
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return self.version == other.version
@@ -144,16 +152,16 @@ class Start(Base):
             minor: int
             revision: int
 
-            def __init__(self, major: int, minor: int, revision: int, build = None):
+            def __init__(self, major: int, minor: int, revision: int, build: Optional[int] = None) -> None:
                 self.major = major
                 self.minor = minor
                 self.revision = revision
                 # build was obsoleted in 2.0.0, and never held a nonzero value
 
-            def __repr__(self):
+            def __repr__(self) -> str:
                 return '%d.%d.%d' % (self.major, self.minor, self.revision)
 
-            def __eq__(self, other):
+            def __eq__(self, other: Any) -> bool:
                 if not isinstance(other, self.__class__):
                     return NotImplemented
                 return self.major == other.major and self.minor == other.minor and self.revision == other.revision
@@ -168,7 +176,7 @@ class Start(Base):
         ucf: Start.Player.UCF #: UCF feature toggles
         tag: Optional[str] #: Name tag
 
-        def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
+        def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Optional[Start.Player.UCF] = None, tag: Optional[str] = None) -> None:
             self.character = character
             self.type = type
             self.stocks = stocks
@@ -177,7 +185,7 @@ class Start(Base):
             self.ucf = ucf or self.UCF()
             self.tag = tag
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return self.character is other.character and self.type is other.type and self.stocks == other.stocks and self.costume == other.costume and self.team is other.team and self.ucf == other.ucf
@@ -198,11 +206,11 @@ class Start(Base):
             dash_back: Start.Player.UCF.DashBack #: UCF dashback status
             shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
 
-            def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
+            def __init__(self, dash_back: Optional[Start.Player.UCF.DashBack] = None, shield_drop: Optional[Start.Player.UCF.ShieldDrop] = None) -> None:
                 self.dash_back = dash_back or self.DashBack.OFF
                 self.shield_drop = shield_drop or self.ShieldDrop.OFF
 
-            def __eq__(self, other):
+            def __eq__(self, other: Any) -> bool:
                 if not isinstance(other, self.__class__):
                     return NotImplemented
                 return self.dash_back == other.dash_back and self.shield_drop == other.shield_drop
@@ -226,12 +234,12 @@ class End(Base):
     method: End.Method #: `changed(2.0.0)` How the game ended
     lras_initiator: Optional[int] #: `added(2.0.0)` Index of player that LRAS'd, if any
 
-    def __init__(self, method: End.Method, lras_initiator: Optional[int] = None):
+    def __init__(self, method: End.Method, lras_initiator: Optional[int] = None) -> None:
         self.method = method
         self.lras_initiator = lras_initiator
 
     @classmethod
-    def _parse(cls, stream):
+    def _parse(cls, stream: BinaryIO) -> End:
         (method,) = unpack('B', stream)
         try: # v2.0.0
             (lras,) = unpack('B', stream)
@@ -240,7 +248,7 @@ class End(Base):
             lras_initiator = None
         return cls(cls.Method(method), lras_initiator)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.method is other.method
@@ -260,21 +268,21 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Sequence[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
-    items: Sequence[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
+    ports: List[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
+    items: List[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
     start: Optional[Frame.Start] #: `added(2.2.0)` Start-of-frame data
     end: Optional[Frame.End] #: `added(2.2.0)` End-of-frame data
 
-    def __init__(self, index: int):
+    def __init__(self, index: int) -> None:
         self.index = index
         self.ports = [None, None, None, None]
         self.items = []
         self.start = None
         self.end = None
 
-    def _finalize(self):
-        self.ports = tuple(self.ports)
-        self.items = tuple(self.items)
+    def _finalize(self) -> None:
+        self.ports = self.ports
+        self.items = self.items
 
 
     class Port(Base):
@@ -285,7 +293,7 @@ class Frame(Base):
         leader: Frame.Port.Data #: Frame data for the controlled character
         follower: Optional[Frame.Port.Data] #: Frame data for the follower (Nana), if any
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.leader = self.Data()
             self.follower = None
 
@@ -295,22 +303,22 @@ class Frame(Base):
 
             __slots__ = '_pre', '_post'
 
-            def __init__(self):
+            def __init__(self) -> None:
                 self._pre = None
                 self._post = None
 
             @property
             def pre(self) -> Optional[Frame.Port.Data.Pre]:
                 """Pre-frame update data"""
-                if self._pre and not isinstance(self._pre, self.Pre):
-                    self._pre = self.Pre._parse(self._pre)
+                if self._pre and not isinstance(self._pre, self.Pre):  # type: ignore
+                    self._pre = self.Pre._parse(self._pre)  # type: ignore[unreachable]
                 return self._pre
 
             @property
             def post(self) -> Optional[Frame.Port.Data.Post]:
                 """Post-frame update data"""
-                if self._post and not isinstance(self._post, self.Post):
-                    self._post = self.Post._parse(self._post)
+                if self._post and not isinstance(self._post, self.Post):  # type: ignore
+                    self._post = self.Post._parse(self._post)  # type: ignore[unreachable]
                 return self._post
 
 
@@ -343,14 +351,16 @@ class Frame(Base):
                     self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
 
                 @classmethod
-                def _parse(cls, stream):
+                def _parse(cls, stream: BinaryIO) -> Frame.Port.Data.Pre:
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
                     # v1.2.0
+                    raw_analog_x: Any
                     try: raw_analog_x = unpack('B', stream)
                     except EOFError: raw_analog_x = None
 
                     # v1.4.0
+                    damage: Any
                     try: damage = unpack('f', stream)
                     except EOFError: damage = None
 
@@ -379,7 +389,7 @@ class Frame(Base):
                 damage: float #: Current damage percent
                 shield: float #: Current size of shield
                 stocks: int #: Number of stocks remaining
-                last_attack_landed: Union[Attack, int] #: Last attack that this character landed
+                last_attack_landed: Union[None, int, Attack] #: Last attack that this character landed
                 last_hit_by: Optional[int] #: Port of character that last hit this character
                 combo_count: int #: Combo count as defined by the game
                 state_age: Optional[float] #: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
@@ -410,7 +420,7 @@ class Frame(Base):
                     self.l_cancel = l_cancel
 
                 @classmethod
-                def _parse(cls, stream):
+                def _parse(cls, stream: BinaryIO) -> Frame.Port.Data.Post:
                     (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
 
                     # v0.2.0
@@ -418,7 +428,7 @@ class Frame(Base):
                     except EOFError: state_age = None
 
                     try: # v2.0.0
-                        flags = unpack('5B', stream)
+                        flags: Any = unpack('5B', stream)
                         (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
                         flags = StateFlags(flags[0] +
                                            flags[1] * 2**8 +
@@ -440,7 +450,7 @@ class Frame(Base):
                         damage=damage,
                         shield=shield,
                         stocks=stocks,
-                        last_attack_landed=try_enum(Attack, last_attack_landed) if last_attack_landed else None,
+                        last_attack_landed=try_enum(Attack, last_attack_landed) if last_attack_landed else 0,
                         last_hit_by=last_hit_by if last_hit_by < 4 else None,
                         combo_count=combo_count,
                         flags=flags,
@@ -465,7 +475,7 @@ class Frame(Base):
         timer: int #: Frames remaining until item expires
         spawn_id: int #: Unique ID per item spawned (0, 1, 2, ...)
 
-        def __init__(self, type: sid.Item, state: int, direction: Direction, velocity: Velocity, position: Position, damage: int, timer: int, spawn_id: int):
+        def __init__(self, type: sid.Item, state: int, direction: Direction, velocity: Velocity, position: Position, damage: int, timer: int, spawn_id: int) -> None:
             self.type = type
             self.state = state
             self.direction = direction
@@ -476,7 +486,7 @@ class Frame(Base):
             self.spawn_id = spawn_id
 
         @classmethod
-        def _parse(cls, stream):
+        def _parse(cls, stream: BinaryIO) -> Frame.Item:
             (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
             return cls(
                 type=try_enum(sid.Item, type),
@@ -488,7 +498,7 @@ class Frame(Base):
                 timer=timer,
                 spawn_id=spawn_id)
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return self.type == other.type and self.state == other.state and self.direction == other.direction and self.velocity == other.velocity and self.position == other.position and self.damage == other.damage and self.timer == other.timer and self.spawn_id == other.spawn_id
@@ -501,16 +511,16 @@ class Frame(Base):
 
         random_seed: int #: The random seed at the start of the frame
 
-        def __init__(self, random_seed: int):
+        def __init__(self, random_seed: int) -> None:
             self.random_seed = random_seed
 
         @classmethod
-        def _parse(cls, stream):
+        def _parse(cls, stream: BinaryIO) -> Frame.Start:
             (random_seed,) = unpack('I', stream)
             random_seed = random_seed
             return cls(random_seed)
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return self.random_seed == other.random_seed
@@ -519,14 +529,14 @@ class Frame(Base):
     class End(Base):
         """End-of-frame data."""
 
-        def __init__(self):
+        def __init__(self) -> None:
             pass
 
         @classmethod
-        def _parse(cls, stream):
+        def _parse(cls, stream: Any) -> Frame.End:
             return cls()
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             return True
@@ -537,7 +547,7 @@ class Frame(Base):
 
         __slots__ = 'id', 'type', 'data'
 
-        def __init__(self, id, type, data):
+        def __init__(self, id: Any, type: Any, data: Any) -> None:
             self.id = id
             self.type = type
             self.data = data
@@ -546,14 +556,14 @@ class Frame(Base):
         class Id(Base):
             __slots__ = 'frame'
 
-            def __init__(self, stream):
+            def __init__(self, stream: BinaryIO) -> None:
                 (self.frame,) = unpack('i', stream)
 
 
         class PortId(Id):
             __slots__ = 'port', 'is_follower'
 
-            def __init__(self, stream):
+            def __init__(self, stream: BinaryIO) -> None:
                 (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
 
 
@@ -571,16 +581,16 @@ class Position(Base):
     x: float
     y: float
 
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float) -> None:
         self.x = x
         self.y = y
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.x == other.x and self.y == other.y
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '(%.2f, %.2f)' % (self.x, self.y)
 
 
@@ -590,16 +600,16 @@ class Velocity(Base):
     x: float
     y: float
 
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float) -> None:
         self.x = x
         self.y = y
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.x == other.x and self.y == other.y
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '(%.2f, %.2f)' % (self.x, self.y)
 
 
@@ -707,11 +717,11 @@ class Triggers(Base):
     logical: float #: Processed analog trigger position
     physical: Triggers.Physical #: Physical analog trigger positions (useful for APM)
 
-    def __init__(self, logical: float, physical_x: float, physical_y: float):
+    def __init__(self, logical: float, physical_x: float, physical_y: float) -> None:
         self.logical = logical
         self.physical = self.Physical(physical_x, physical_y)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, self.__class__):
             return NotImplemented
         return other.logical == self.logical and other.physical == self.physical
@@ -723,11 +733,11 @@ class Triggers(Base):
         l: float
         r: float
 
-        def __init__(self, l: float, r: float):
+        def __init__(self, l: float, r: float) -> None:
             self.l = l
             self.r = r
 
-        def __eq__(self, other):
+        def __eq__(self, other: Any) -> bool:
             if not isinstance(other, self.__class__):
                 return NotImplemented
             # Should we add an epsilon to these comparisons? When are people going to be comparing trigger states for equality, other than in our tests?
@@ -740,11 +750,11 @@ class Buttons(Base):
     logical: Buttons.Logical #: Processed button-state bitmask
     physical: Buttons.Physical #: Physical button-state bitmask
 
-    def __init__(self, logical, physical):
+    def __init__(self, logical: Buttons.Logical, physical: Buttons.Physical) -> None:
         self.logical = self.Logical(logical)
         self.physical = self.Physical(physical)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Buttons):
             return NotImplemented
         return other.logical is self.logical and other.physical is self.physical
@@ -790,7 +800,7 @@ class Buttons(Base):
         DPAD_LEFT = 2**0
         NONE = 0
 
-        def pressed(self):
+        def pressed(self) -> List[Any]:
             """Returns a list of all buttons being pressed."""
             pressed = []
             for b in self.__class__:

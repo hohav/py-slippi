@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import io, os, pathlib
-from typing import BinaryIO, Callable, Dict, Union
+import io, pathlib
+import os
+from typing import Any, BinaryIO, Callable, Dict, Tuple, Union, Optional
 
 import ubjson
 
@@ -25,19 +26,19 @@ class ParseEvent(Enum):
 
 
 class ParseError(IOError):
-    def __init__(self, message, filename = None, pos = None):
+    def __init__(self, message: str, filename: Optional[str] = None, pos: Any = None) -> None:
         super().__init__(message)
         self.filename = filename
         self.pos = pos
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Parse error (%s %s): %s' % (
             self.filename or '?',
             '@0x%x' % self.pos if self.pos else '?',
             super().__str__())
 
 
-def _parse_event_payloads(stream):
+def _parse_event_payloads(stream: BinaryIO) -> Tuple[int, Dict[Any, Any]]:
     (code, this_size) = unpack('BB', stream)
 
     event_type = EventType(code)
@@ -60,7 +61,7 @@ def _parse_event_payloads(stream):
     return (2 + this_size, sizes)
 
 
-def _parse_event(event_stream, payload_sizes):
+def _parse_event(event_stream: BinaryIO, payload_sizes: Dict[Any, Any]) -> Tuple[Any, Union[None, Start, End, Frame.Event, ParseEvent]]:
     (code,) = unpack('B', event_stream)
     log.debug(f'Event: 0x{code:x}')
 
@@ -74,9 +75,13 @@ def _parse_event(event_stream, payload_sizes):
     stream = io.BytesIO(event_stream.read(size))
 
     try:
-        try: event_type = EventType(code)
-        except ValueError: event_type = None
+        event_type: Optional[EventType]
+        try:
+            event_type = EventType(code)
+        except ValueError:
+            event_type = None
 
+        event: Union[None, Start, End, Frame.Event]
         if event_type is EventType.GAME_START:
             event = Start._parse(stream)
         elif event_type is EventType.FRAME_PRE:
@@ -115,8 +120,8 @@ def _parse_event(event_stream, payload_sizes):
         raise ParseError(str(e), pos = base_pos + stream.tell() if base_pos else None)
 
 
-def _parse_events(stream, payload_sizes, total_size, handlers):
-    current_frame = None
+def _parse_events(stream: BinaryIO, payload_sizes: Dict[Any, Any], total_size: int, handlers: Dict[ParseEvent, Any]) -> None:
+    current_frame: Optional[Frame] = None
     bytes_read = 0
     event = None
 
@@ -180,7 +185,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler(current_frame)
 
 
-def _parse(stream, handlers):
+def _parse(stream: BinaryIO, handlers: Dict[ParseEvent, Callable[[Any], None]]) -> None:
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
@@ -205,7 +210,7 @@ def _parse(stream, handlers):
     expect_bytes(b'}', stream)
 
 
-def _parse_try(input: BinaryIO, handlers):
+def _parse_try(input: BinaryIO, handlers: Dict[ParseEvent, Callable[[Any], None]]) -> None:
     """Wrap parsing exceptions with additional information."""
 
     try:
@@ -213,25 +218,25 @@ def _parse_try(input: BinaryIO, handlers):
     except Exception as e:
         e = e if isinstance(e, ParseError) else ParseError(str(e))
 
-        try: e.filename = input.name # type: ignore
+        try: e.filename = input.name
         except AttributeError: pass
 
         try:
             # prefer provided position info, as it will be more accurate
-            if not e.pos and input.seekable(): # type: ignore
-                e.pos = input.tell() # type: ignore
+            if not e.pos and input.seekable():
+                e.pos = input.tell()
         # not all stream-like objects support `seekable` (e.g. HTTP requests)
         except AttributeError: pass
 
         raise e
 
 
-def _parse_open(input: os.PathLike, handlers) -> None:
+def _parse_open(input: os.PathLike[str], handlers: Dict[ParseEvent, Callable[[Any], None]]) -> None:
     with open(input, 'rb') as f:
         _parse_try(f, handlers)
 
 
-def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
+def parse(input: Union[BinaryIO, str, os.PathLike[str]], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
     """Parse a Slippi replay.
 
     :param input: replay file object or path

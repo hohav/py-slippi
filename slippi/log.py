@@ -1,4 +1,5 @@
 import logging, os
+from typing import Any
 
 from termcolor import colored
 
@@ -12,10 +13,10 @@ COLORS = {
 
 
 _old_factory = logging.getLogRecordFactory()
-def record_factory(*args, **kwargs):
+def record_factory(*args: Any, **kwargs: Any) -> Any:
     record = _old_factory(*args, **kwargs)
     l = record.levelname
-    record.levelname_colored = colored(l, COLORS.get(l, 'white'))
+    record.levelname_colored = colored(l, COLORS.get(l, 'white'))  # type: ignore[attr-defined]
     return record
 
 

@@ -7,6 +7,8 @@
 
 import os
 import sys
+from typing import Any
+
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -55,22 +57,23 @@ html_sidebars = {
 
 # -- Extension configuration -------------------------------------------------
 
-from sphinx.ext.autodoc import ClassLevelDocumenter, InstanceAttributeDocumenter
+from sphinx.ext.autodoc import ClassLevelDocumenter
+from sphinx.ext.autodoc.deprecated import InstanceAttributeDocumenter
 
 autodoc_member_order = 'bysource'
 
-def skip(app, what, name, obj, skip, options):
+def skip(app: Any, what: Any, name: Any, obj: Any, skip: Any, options: Any) -> Any:
     if name == '__init__' and obj.__doc__:
         return False
     return skip
 
-def setup(app):
+def setup(app: Any) -> None:
     app.connect("autodoc-skip-member", skip)
     app.add_stylesheet('custom.css')
     app.add_javascript('custom.js')
 
 # remove the useless " = None" after every ivar
-def iad_add_directive_header(self, sig):
+def iad_add_directive_header(self: Any, sig: str) -> None:
     ClassLevelDocumenter.add_directive_header(self, sig)
 
 InstanceAttributeDocumenter.add_directive_header = iad_add_directive_header  # type: ignore[assignment]

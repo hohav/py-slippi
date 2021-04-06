@@ -1,6 +1,6 @@
 import io, os
 from logging import debug
-from typing import BinaryIO, List, Optional, Union
+from typing import BinaryIO, List, Optional, Union, Any, Dict
 
 from .event import FIRST_FRAME_INDEX, End, Frame, Start
 from .metadata import Metadata
@@ -15,9 +15,9 @@ class Game(Base):
     frames: List[Frame] #: Every frame of the game, indexed by frame number
     end: Optional[End] #: Information about the end of the game
     metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
-    metadata_raw: Optional[dict] #: Raw JSON metadata, for debugging and forward-compatibility
+    metadata_raw: Optional[Dict[Any, Any]] #: Raw JSON metadata, for debugging and forward-compatibility
 
-    def __init__(self, input: Union[BinaryIO, str, os.PathLike]):
+    def __init__(self, input: Union[BinaryIO, str, os.PathLike[str]]) -> None:
         """Parse a Slippi replay.
 
         :param input: replay file object or path"""
@@ -35,7 +35,7 @@ class Game(Base):
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
             ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)})
 
-    def _add_frame(self, f):
+    def _add_frame(self, f: Any) -> None:
         idx = f.index - FIRST_FRAME_INDEX
         count = len(self.frames)
         if idx == count:
@@ -46,7 +46,7 @@ class Game(Base):
         else:
             raise Exception(f'missing frames: {count-1} -> {idx}')
 
-    def _attr_repr(self, attr):
+    def _attr_repr(self, attr: Any) -> Any:
         self_attr = getattr(self, attr)
         if isinstance(self_attr, list):
             return '%s=[...](%d)' % (attr, len(self_attr))

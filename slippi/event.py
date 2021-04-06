@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, BinaryIO, Optional, Iterable, Tuple, Union, List, no_type_check
+from typing import Any, BinaryIO, Optional, Iterable, Tuple, Union, List
 
 from . import id as sid
 from .util import *

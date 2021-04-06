@@ -1,7 +1,8 @@
+# type: ignore[attr-defined]
 #!/usr/bin/python3
 
 import datetime, glob, os, subprocess, unittest
-from typing import Any, List, no_type_check
+from typing import Any, List
 
 from slippi.game import Game
 from slippi.parse import parse

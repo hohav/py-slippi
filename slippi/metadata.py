@@ -48,46 +48,46 @@ class Metadata(Base):
         return self.date == other.date and self.duration == other.duration and self.platform == other.platform and self.players == other.players and self.console_name == other.console_name
 
 
-    class Player(Base):
-        characters: Dict[sid.InGameCharacter, int] #: Character(s) used, with usage duration in frames (for Zelda/Sheik)
-        netplay: Optional[Metadata.Player.Netplay] #: Netplay info (Dolphin-only)
+class Player(Base):
+    characters: Dict[sid.InGameCharacter, int] #: Character(s) used, with usage duration in frames (for Zelda/Sheik)
+    netplay: Optional[Metadata.Player.Netplay] #: Netplay info (Dolphin-only)
 
-        def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Metadata.Player.Netplay] = None):
-            self.characters = characters
-            self.netplay = netplay
+    def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Metadata.Player.Netplay] = None):
+        self.characters = characters
+        self.netplay = netplay
 
-        @classmethod
-        def _parse(cls, json):
-            characters = {}
-            for char_id, duration in json['characters'].items():
-                characters[sid.InGameCharacter(int(char_id))] = duration
-            try:
-                netplay = cls.Netplay(code=json['names']['code'], name=json['names']['netplay'])
-            except KeyError: netplay = None
-            return cls(characters, netplay)
+    @classmethod
+    def _parse(cls, json):
+        characters = {}
+        for char_id, duration in json['characters'].items():
+            characters[sid.InGameCharacter(int(char_id))] = duration
+        try:
+            netplay = cls.Netplay(code=json['names']['code'], name=json['names']['netplay'])
+        except KeyError: netplay = None
+        return cls(characters, netplay)
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return self.characters == other.characters and self.netplay == other.netplay
-
-
-        class Netplay(Base):
-            code: str #: Netplay code (e.g. "ABCD#123")
-            name: str #: Netplay nickname
-
-            def __init__(self, code: str, name: str):
-                self.code = code
-                self.name = name
-
-            def __eq__(self, other):
-                if not isinstance(other, self.__class__):
-                    return NotImplemented
-                return self.code == other.code and self.name == other.name
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.characters == other.characters and self.netplay == other.netplay
 
 
-    class Platform(Enum):
-        CONSOLE = 'console'
-        DOLPHIN = 'dolphin'
-        NETWORK = 'network'
-        NINTENDONT = 'nintendont'
+class Netplay(Base):
+    code: str #: Netplay code (e.g. "ABCD#123")
+    name: str #: Netplay nickname
+
+    def __init__(self, code: str, name: str):
+        self.code = code
+        self.name = name
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.code == other.code and self.name == other.name
+
+
+class Platform(Enum):
+    CONSOLE = 'console'
+    DOLPHIN = 'dolphin'
+    NETWORK = 'network'
+    NINTENDONT = 'nintendont'

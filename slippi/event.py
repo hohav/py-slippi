@@ -120,113 +120,113 @@ class Start(Base):
         return self.is_teams == other.is_teams and self.players == other.players and self.random_seed == other.random_seed and self.slippi == other.slippi and self.stage is other.stage
 
 
-    class Slippi(Base):
-        """Information about the Slippi recorder that generated this replay."""
+class Slippi(Base):
+    """Information about the Slippi recorder that generated this replay."""
 
-        version: Start.Slippi.Version #: Slippi version number
+    version: Start.Slippi.Version #: Slippi version number
 
-        def __init__(self, version: Start.Slippi.Version):
-            self.version = version
+    def __init__(self, version: Start.Slippi.Version):
+        self.version = version
 
-        @classmethod
-        def _parse(cls, stream):
-            return cls(cls.Version(*unpack('BBBB', stream)))
+    @classmethod
+    def _parse(cls, stream):
+        return cls(cls.Version(*unpack('BBBB', stream)))
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return self.version == other.version
-
-
-        class Version(Base):
-
-            major: int
-            minor: int
-            revision: int
-
-            def __init__(self, major: int, minor: int, revision: int, build = None):
-                self.major = major
-                self.minor = minor
-                self.revision = revision
-                # build was obsoleted in 2.0.0, and never held a nonzero value
-
-            def __repr__(self):
-                return '%d.%d.%d' % (self.major, self.minor, self.revision)
-
-            def __eq__(self, other):
-                if not isinstance(other, self.__class__):
-                    return NotImplemented
-                return self.major == other.major and self.minor == other.minor and self.revision == other.revision
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.version == other.version
 
 
-    class Player(Base):
-        character: sid.CSSCharacter #: Character selected
-        type: Start.Player.Type #: Player type (human/cpu)
-        stocks: int #: Starting stock count
-        costume: int #: Costume ID
-        team: Optional[Start.Player.Team] #: Team, if this was a teams game
-        ucf: Start.Player.UCF #: UCF feature toggles
-        tag: Optional[str] #: Name tag
+class Version(Base):
 
-        def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
-            self.character = character
-            self.type = type
-            self.stocks = stocks
-            self.costume = costume
-            self.team = team
-            self.ucf = ucf or self.UCF()
-            self.tag = tag
+    major: int
+    minor: int
+    revision: int
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return self.character is other.character and self.type is other.type and self.stocks == other.stocks and self.costume == other.costume and self.team is other.team and self.ucf == other.ucf
+    def __init__(self, major: int, minor: int, revision: int, build = None):
+        self.major = major
+        self.minor = minor
+        self.revision = revision
+        # build was obsoleted in 2.0.0, and never held a nonzero value
+
+    def __repr__(self):
+        return '%d.%d.%d' % (self.major, self.minor, self.revision)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.major == other.major and self.minor == other.minor and self.revision == other.revision
 
 
-        class Type(IntEnum):
-            HUMAN = 0
-            CPU = 1
+class Player(Base):
+    character: sid.CSSCharacter #: Character selected
+    type: Start.Player.Type #: Player type (human/cpu)
+    stocks: int #: Starting stock count
+    costume: int #: Costume ID
+    team: Optional[Start.Player.Team] #: Team, if this was a teams game
+    ucf: Start.Player.UCF #: UCF feature toggles
+    tag: Optional[str] #: Name tag
+
+    def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
+        self.character = character
+        self.type = type
+        self.stocks = stocks
+        self.costume = costume
+        self.team = team
+        self.ucf = ucf or self.UCF()
+        self.tag = tag
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.character is other.character and self.type is other.type and self.stocks == other.stocks and self.costume == other.costume and self.team is other.team and self.ucf == other.ucf
 
 
-        class Team(IntEnum):
-            RED = 0
-            BLUE = 1
-            GREEN = 2
+class Type(IntEnum):
+    HUMAN = 0
+    CPU = 1
 
 
-        class UCF(Base):
-            dash_back: Start.Player.UCF.DashBack #: UCF dashback status
-            shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
-
-            def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
-                self.dash_back = dash_back or self.DashBack.OFF
-                self.shield_drop = shield_drop or self.ShieldDrop.OFF
-
-            def __eq__(self, other):
-                if not isinstance(other, self.__class__):
-                    return NotImplemented
-                return self.dash_back == other.dash_back and self.shield_drop == other.shield_drop
+class Team(IntEnum):
+    RED = 0
+    BLUE = 1
+    GREEN = 2
 
 
-            class DashBack(IntEnum):
-                OFF = 0
-                UCF = 1
-                ARDUINO = 2
+class UCF(Base):
+    dash_back: Start.Player.UCF.DashBack #: UCF dashback status
+    shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
+
+    def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
+        self.dash_back = dash_back or self.DashBack.OFF
+        self.shield_drop = shield_drop or self.ShieldDrop.OFF
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.dash_back == other.dash_back and self.shield_drop == other.shield_drop
 
 
-            class ShieldDrop(IntEnum):
-                OFF = 0
-                UCF = 1
-                ARDUINO = 2
+class DashBack(IntEnum):
+    OFF = 0
+    UCF = 1
+    ARDUINO = 2
 
 
-class End(Base):
+class ShieldDrop(IntEnum):
+    OFF = 0
+    UCF = 1
+    ARDUINO = 2
+
+
+class GameEnd(Base):
     """Information about the end of the game."""
 
-    method: End.Method #: `changed(2.0.0)` How the game ended
+    method: GameEndMethod #: `changed(2.0.0)` How the game ended
     lras_initiator: Optional[int] #: `added(2.0.0)` Index of player that LRAS'd, if any
 
-    def __init__(self, method: End.Method, lras_initiator: Optional[int] = None):
+    def __init__(self, method: GameEndMethod, lras_initiator: Optional[int] = None):
         self.method = method
         self.lras_initiator = lras_initiator
 
@@ -238,7 +238,7 @@ class End(Base):
             lras_initiator = lras if lras < len(PORTS) else None
         except EOFError:
             lras_initiator = None
-        return cls(cls.Method(method), lras_initiator)
+        return cls(Method(method), lras_initiator)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -246,12 +246,12 @@ class End(Base):
         return self.method is other.method
 
 
-    class Method(IntEnum):
-        INCONCLUSIVE = 0 # `obsoleted(2.0.0)`
-        TIME = 1 # `added(2.0.0)`
-        GAME = 2 # `added(2.0.0)`
-        CONCLUSIVE = 3 # `obsoleted(2.0.0)`
-        NO_CONTEST = 7 # `added(2.0.0)`
+class GameEndMethod(IntEnum):
+    INCONCLUSIVE = 0 # `obsoleted(2.0.0)`
+    TIME = 1 # `added(2.0.0)`
+    GAME = 2 # `added(2.0.0)`
+    CONCLUSIVE = 3 # `obsoleted(2.0.0)`
+    NO_CONTEST = 7 # `added(2.0.0)`
 
 
 class Frame(Base):
@@ -260,10 +260,10 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Sequence[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
-    items: Sequence[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
-    start: Optional[Frame.Start] #: `added(2.2.0)` Start-of-frame data
-    end: Optional[Frame.End] #: `added(2.2.0)` End-of-frame data
+    ports: Sequence[Optional[Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
+    items: Sequence[Item] #: `added(3.0.0)` Active items (includes projectiles)
+    start: Optional[Start] #: `added(2.2.0)` Start-of-frame data
+    end: Optional[End] #: `added(2.2.0)` End-of-frame data
 
     def __init__(self, index: int):
         self.index = index
@@ -276,293 +276,292 @@ class Frame(Base):
         self.ports = tuple(self.ports)
         self.items = tuple(self.items)
 
+class Port(Base):
+    """Frame data for a given port. Can include two characters' frame data (ICs)."""
 
-    class Port(Base):
-        """Frame data for a given port. Can include two characters' frame data (ICs)."""
+    __slots__ = 'leader', 'follower'
 
-        __slots__ = 'leader', 'follower'
+    leader: Data #: Frame data for the controlled character
+    follower: Optional[Data] #: Frame data for the follower (Nana), if any
 
-        leader: Frame.Port.Data #: Frame data for the controlled character
-        follower: Optional[Frame.Port.Data] #: Frame data for the follower (Nana), if any
-
-        def __init__(self):
-            self.leader = self.Data()
-            self.follower = None
-
-
-        class Data(Base):
-            """Frame data for a given character. Includes both pre-frame and post-frame data."""
-
-            __slots__ = '_pre', '_post'
-
-            def __init__(self):
-                self._pre = None
-                self._post = None
-
-            @property
-            def pre(self) -> Optional[Frame.Port.Data.Pre]:
-                """Pre-frame update data"""
-                if self._pre and not isinstance(self._pre, self.Pre):
-                    self._pre = self.Pre._parse(self._pre)
-                return self._pre
-
-            @property
-            def post(self) -> Optional[Frame.Port.Data.Post]:
-                """Post-frame update data"""
-                if self._post and not isinstance(self._post, self.Post):
-                    self._post = self.Post._parse(self._post)
-                return self._post
+    def __init__(self):
+        self.leader = Data()
+        self.follower = None
 
 
-            class Pre(Base):
-                """Pre-frame update data, required to reconstruct a replay. Information is collected right before controller inputs are used to figure out the character's next action."""
+class Data(Base):
+    """Frame data for a given character. Includes both pre-frame and post-frame data."""
 
-                __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x', 'damage'
+    __slots__ = '_pre', '_post'
 
-                state: Union[sid.ActionState, int]
-                position: Position
-                direction: Direction
-                joystick: Position
-                cstick: Position
-                triggers: Triggers
-                buttons: Buttons
-                random_seed: int
-                raw_analog_x: Optional[int]
-                damage: Optional[float]
+    def __init__(self):
+        self._pre = None
+        self._post = None
 
-                def __init__(self, state: Union[sid.ActionState, int], position: Position, direction: Direction, joystick: Position, cstick: Position, triggers: Triggers, buttons: Buttons, random_seed: int, raw_analog_x: Optional[int] = None, damage: Optional[float] = None):
-                    self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
-                    self.position = position #: :py:class:`Position`: Character's position
-                    self.direction = direction #: :py:class:`Direction`: Direction the character is facing
-                    self.joystick = joystick #: :py:class:`Position`: Processed analog joystick position
-                    self.cstick = cstick #: :py:class:`Position`: Processed analog c-stick position
-                    self.triggers = triggers #: :py:class:`Triggers`: Trigger state
-                    self.buttons = buttons #: :py:class:`Buttons`: Button state
-                    self.random_seed = random_seed #: int: Random seed at this point
-                    self.raw_analog_x = raw_analog_x #: int | None: `added(1.2.0)` Raw x analog controller input (for UCF)
-                    self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
+    @property
+    def pre(self) -> Optional[Pre]:
+        """Pre-frame update data"""
+        if self._pre and not isinstance(self._pre, Pre):
+            self._pre = Pre._parse(self._pre)
+        return self._pre
 
-                @classmethod
-                def _parse(cls, stream):
-                    (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
-
-                    # v1.2.0
-                    try: raw_analog_x = unpack('B', stream)
-                    except EOFError: raw_analog_x = None
-
-                    # v1.4.0
-                    try: damage = unpack('f', stream)
-                    except EOFError: damage = None
-
-                    return cls(
-                        state=try_enum(sid.ActionState, state),
-                        position=Position(position_x, position_y),
-                        direction=Direction(direction),
-                        joystick=Position(joystick_x, joystick_y),
-                        cstick=Position(cstick_x, cstick_y),
-                        triggers=Triggers(trigger_logical, trigger_physical_l, trigger_physical_r),
-                        buttons=Buttons(buttons_logical, buttons_physical),
-                        random_seed=random_seed,
-                        raw_analog_x=raw_analog_x,
-                        damage=damage)
+    @property
+    def post(self) -> Optional[Post]:
+        """Post-frame update data"""
+        if self._post and not isinstance(self._post, Post):
+            self._post = Post._parse(self._post)
+        return self._post
 
 
-            class Post(Base):
-                """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""
+class Pre(Base):
+    """Pre-frame update data, required to reconstruct a replay. Information is collected right before controller inputs are used to figure out the character's next action."""
 
-                __slots__ = 'character', 'state', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'state_age', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
+    __slots__ = 'state', 'position', 'direction', 'joystick', 'cstick', 'triggers', 'buttons', 'random_seed', 'raw_analog_x', 'damage'
 
-                character: sid.InGameCharacter #: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
-                state: Union[sid.ActionState, int] #: Character's action state
-                position: Position #: Character's position
-                direction: Direction #: Direction the character is facing
-                damage: float #: Current damage percent
-                shield: float #: Current size of shield
-                stocks: int #: Number of stocks remaining
-                last_attack_landed: Union[Attack, int] #: Last attack that this character landed
-                last_hit_by: Optional[int] #: Port of character that last hit this character
-                combo_count: int #: Combo count as defined by the game
-                state_age: Optional[float] #: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
-                flags: Optional[StateFlags] #: `added(2.0.0)` State flags
-                hit_stun: Optional[float] #: `added(2.0.0)` Number of hitstun frames remaining
-                airborne: Optional[bool] #: `added(2.0.0)` True if character is airborne
-                ground: Optional[int] #: `added(2.0.0)` ID of ground character is standing on, if any
-                jumps: Optional[int] #: `added(2.0.0)` Jumps remaining
-                l_cancel: Optional[LCancel] #: `added(2.0.0)` L-cancel status, if any
+    state: Union[sid.ActionState, int]
+    position: Position
+    direction: Direction
+    joystick: Position
+    cstick: Position
+    triggers: Triggers
+    buttons: Buttons
+    random_seed: int
+    raw_analog_x: Optional[int]
+    damage: Optional[float]
 
-                def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: Position, direction: Direction, damage: float, shield: float, stocks: int, last_attack_landed: Union[Attack, int], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional[StateFlags] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional[LCancel] = None):
-                    self.character = character
-                    self.state = state
-                    self.position = position
-                    self.direction = direction
-                    self.damage = damage
-                    self.shield = shield
-                    self.stocks = stocks
-                    self.last_attack_landed = last_attack_landed
-                    self.last_hit_by = last_hit_by
-                    self.combo_count = combo_count
-                    self.state_age = state_age
-                    self.flags = flags
-                    self.hit_stun = hit_stun
-                    self.airborne = airborne
-                    self.ground = ground
-                    self.jumps = jumps
-                    self.l_cancel = l_cancel
+    def __init__(self, state: Union[sid.ActionState, int], position: Position, direction: Direction, joystick: Position, cstick: Position, triggers: Triggers, buttons: Buttons, random_seed: int, raw_analog_x: Optional[int] = None, damage: Optional[float] = None):
+        self.state = state #: :py:class:`slippi.id.ActionState` | int: Character's action state
+        self.position = position #: :py:class:`Position`: Character's position
+        self.direction = direction #: :py:class:`Direction`: Direction the character is facing
+        self.joystick = joystick #: :py:class:`Position`: Processed analog joystick position
+        self.cstick = cstick #: :py:class:`Position`: Processed analog c-stick position
+        self.triggers = triggers #: :py:class:`Triggers`: Trigger state
+        self.buttons = buttons #: :py:class:`Buttons`: Button state
+        self.random_seed = random_seed #: int: Random seed at this point
+        self.raw_analog_x = raw_analog_x #: int | None: `added(1.2.0)` Raw x analog controller input (for UCF)
+        self.damage = damage #: float | None: `added(1.4.0)` Current damage percent
 
-                @classmethod
-                def _parse(cls, stream):
-                    (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
+    @classmethod
+    def _parse(cls, stream):
+        (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
-                    # v0.2.0
-                    try: (state_age,) = unpack('f', stream)
-                    except EOFError: state_age = None
+        # v1.2.0
+        try: raw_analog_x = unpack('B', stream)
+        except EOFError: raw_analog_x = None
 
-                    try: # v2.0.0
-                        flags = unpack('5B', stream)
-                        (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
-                        flags = StateFlags(flags[0] +
-                                           flags[1] * 2**8 +
-                                           flags[2] * 2**16 +
-                                           flags[3] * 2**24 +
-                                           flags[4] * 2**32)
-                        ground = maybe_ground if not airborne else None
-                        hit_stun = misc_as if flags.HIT_STUN else None
-                        l_cancel = LCancel(l_cancel) if l_cancel else None
-                    except EOFError:
-                        (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
+        # v1.4.0
+        try: damage = unpack('f', stream)
+        except EOFError: damage = None
 
-                    return cls(
-                        character=sid.InGameCharacter(character),
-                        state=try_enum(sid.ActionState, state),
-                        state_age=state_age,
-                        position=Position(position_x, position_y),
-                        direction=Direction(direction),
-                        damage=damage,
-                        shield=shield,
-                        stocks=stocks,
-                        last_attack_landed=try_enum(Attack, last_attack_landed) if last_attack_landed else None,
-                        last_hit_by=last_hit_by if last_hit_by < 4 else None,
-                        combo_count=combo_count,
-                        flags=flags,
-                        hit_stun=hit_stun,
-                        airborne=airborne,
-                        ground=ground,
-                        jumps=jumps,
-                        l_cancel=l_cancel)
+        return cls(
+            state=try_enum(sid.ActionState, state),
+            position=Position(position_x, position_y),
+            direction=Direction(direction),
+            joystick=Position(joystick_x, joystick_y),
+            cstick=Position(cstick_x, cstick_y),
+            triggers=Triggers(trigger_logical, trigger_physical_l, trigger_physical_r),
+            buttons=Buttons(buttons_logical, buttons_physical),
+            random_seed=random_seed,
+            raw_analog_x=raw_analog_x,
+            damage=damage)
 
 
-    class Item(Base):
-        """An active item (includes projectiles)."""
+class Post(Base):
+    """Post-frame update data, for making decisions about game states (such as computing stats). Information is collected at the end of collision detection, which is the last consideration of the game engine."""
 
-        __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
+    __slots__ = 'character', 'state', 'position', 'direction', 'damage', 'shield', 'stocks', 'last_attack_landed', 'last_hit_by', 'combo_count', 'state_age', 'flags', 'hit_stun', 'airborne', 'ground', 'jumps', 'l_cancel'
 
-        type: sid.Item #: Item type
-        state: int #: Item's action state
-        direction: Direction #: Direction item is facing
-        velocity: Velocity #: Item's velocity
-        position: Position #: Item's position
-        damage: int #: Amount of damage item has taken
-        timer: int #: Frames remaining until item expires
-        spawn_id: int #: Unique ID per item spawned (0, 1, 2, ...)
+    character: sid.InGameCharacter #: In-game character (can only change for Zelda/Sheik). Check on first frame to determine if Zelda started as Sheik
+    state: Union[sid.ActionState, int] #: Character's action state
+    position: Position #: Character's position
+    direction: Direction #: Direction the character is facing
+    damage: float #: Current damage percent
+    shield: float #: Current size of shield
+    stocks: int #: Number of stocks remaining
+    last_attack_landed: Union[Attack, int] #: Last attack that this character landed
+    last_hit_by: Optional[int] #: Port of character that last hit this character
+    combo_count: int #: Combo count as defined by the game
+    state_age: Optional[float] #: `added(0.2.0)` Number of frames action state has been active. Can have a fractional component for certain actions
+    flags: Optional[StateFlags] #: `added(2.0.0)` State flags
+    hit_stun: Optional[float] #: `added(2.0.0)` Number of hitstun frames remaining
+    airborne: Optional[bool] #: `added(2.0.0)` True if character is airborne
+    ground: Optional[int] #: `added(2.0.0)` ID of ground character is standing on, if any
+    jumps: Optional[int] #: `added(2.0.0)` Jumps remaining
+    l_cancel: Optional[LCancel] #: `added(2.0.0)` L-cancel status, if any
 
-        def __init__(self, type: sid.Item, state: int, direction: Direction, velocity: Velocity, position: Position, damage: int, timer: int, spawn_id: int):
-            self.type = type
-            self.state = state
-            self.direction = direction
-            self.velocity = velocity
-            self.position = position
-            self.damage = damage
-            self.timer = timer
-            self.spawn_id = spawn_id
+    def __init__(self, character: sid.InGameCharacter, state: Union[sid.ActionState, int], position: Position, direction: Direction, damage: float, shield: float, stocks: int, last_attack_landed: Union[Attack, int], last_hit_by: Optional[int], combo_count: int, state_age: Optional[float] = None, flags: Optional[StateFlags] = None, hit_stun: Optional[float] = None, airborne: Optional[bool] = None, ground: Optional[int] = None, jumps: Optional[int] = None, l_cancel: Optional[LCancel] = None):
+        self.character = character
+        self.state = state
+        self.position = position
+        self.direction = direction
+        self.damage = damage
+        self.shield = shield
+        self.stocks = stocks
+        self.last_attack_landed = last_attack_landed
+        self.last_hit_by = last_hit_by
+        self.combo_count = combo_count
+        self.state_age = state_age
+        self.flags = flags
+        self.hit_stun = hit_stun
+        self.airborne = airborne
+        self.ground = ground
+        self.jumps = jumps
+        self.l_cancel = l_cancel
 
-        @classmethod
-        def _parse(cls, stream):
-            (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
-            return cls(
-                type=try_enum(sid.Item, type),
-                state=state,
-                direction=Direction(direction),
-                velocity=Velocity(x_vel, y_vel),
-                position=Position(x_pos, y_pos),
-                damage=damage,
-                timer=timer,
-                spawn_id=spawn_id)
+    @classmethod
+    def _parse(cls, stream):
+        (character, state, position_x, position_y, direction, damage, shield, last_attack_landed, combo_count, last_hit_by, stocks) = unpack('BHfffffBBBB', stream)
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return self.type == other.type and self.state == other.state and self.direction == other.direction and self.velocity == other.velocity and self.position == other.position and self.damage == other.damage and self.timer == other.timer and self.spawn_id == other.spawn_id
+        # v0.2.0
+        try: (state_age,) = unpack('f', stream)
+        except EOFError: state_age = None
 
+        try: # v2.0.0
+            flags = unpack('5B', stream)
+            (misc_as, airborne, maybe_ground, jumps, l_cancel) = unpack('f?HBB', stream)
+            flags = StateFlags(flags[0] +
+                               flags[1] * 2**8 +
+                               flags[2] * 2**16 +
+                               flags[3] * 2**24 +
+                               flags[4] * 2**32)
+            ground = maybe_ground if not airborne else None
+            hit_stun = misc_as if flags.HIT_STUN else None
+            l_cancel = LCancel(l_cancel) if l_cancel else None
+        except EOFError:
+            (flags, hit_stun, airborne, ground, jumps, l_cancel) = [None] * 6
 
-    class Start(Base):
-        """Start-of-frame data."""
-
-        __slots__ = 'random_seed'
-
-        random_seed: int #: The random seed at the start of the frame
-
-        def __init__(self, random_seed: int):
-            self.random_seed = random_seed
-
-        @classmethod
-        def _parse(cls, stream):
-            (random_seed,) = unpack('I', stream)
-            random_seed = random_seed
-            return cls(random_seed)
-
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return self.random_seed == other.random_seed
-
-
-    class End(Base):
-        """End-of-frame data."""
-
-        def __init__(self):
-            pass
-
-        @classmethod
-        def _parse(cls, stream):
-            return cls()
-
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            return True
-
-
-    class Event(Base):
-        """Temporary wrapper used while parsing frame data."""
-
-        __slots__ = 'id', 'type', 'data'
-
-        def __init__(self, id, type, data):
-            self.id = id
-            self.type = type
-            self.data = data
+        return cls(
+            character=sid.InGameCharacter(character),
+            state=try_enum(sid.ActionState, state),
+            state_age=state_age,
+            position=Position(position_x, position_y),
+            direction=Direction(direction),
+            damage=damage,
+            shield=shield,
+            stocks=stocks,
+            last_attack_landed=try_enum(Attack, last_attack_landed) if last_attack_landed else None,
+            last_hit_by=last_hit_by if last_hit_by < 4 else None,
+            combo_count=combo_count,
+            flags=flags,
+            hit_stun=hit_stun,
+            airborne=airborne,
+            ground=ground,
+            jumps=jumps,
+            l_cancel=l_cancel)
 
 
-        class Id(Base):
-            __slots__ = 'frame'
+class Item(Base):
+    """An active item (includes projectiles)."""
 
-            def __init__(self, stream):
-                (self.frame,) = unpack('i', stream)
+    __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
+
+    type: sid.Item #: Item type
+    state: int #: Item's action state
+    direction: Direction #: Direction item is facing
+    velocity: Velocity #: Item's velocity
+    position: Position #: Item's position
+    damage: int #: Amount of damage item has taken
+    timer: int #: Frames remaining until item expires
+    spawn_id: int #: Unique ID per item spawned (0, 1, 2, ...)
+
+    def __init__(self, type: sid.Item, state: int, direction: Direction, velocity: Velocity, position: Position, damage: int, timer: int, spawn_id: int):
+        self.type = type
+        self.state = state
+        self.direction = direction
+        self.velocity = velocity
+        self.position = position
+        self.damage = damage
+        self.timer = timer
+        self.spawn_id = spawn_id
+
+    @classmethod
+    def _parse(cls, stream):
+        (type, state, direction, x_vel, y_vel, x_pos, y_pos, damage, timer, spawn_id) = unpack('HB5fHfI', stream)
+        return cls(
+            type=try_enum(sid.Item, type),
+            state=state,
+            direction=Direction(direction),
+            velocity=Velocity(x_vel, y_vel),
+            position=Position(x_pos, y_pos),
+            damage=damage,
+            timer=timer,
+            spawn_id=spawn_id)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.type == other.type and self.state == other.state and self.direction == other.direction and self.velocity == other.velocity and self.position == other.position and self.damage == other.damage and self.timer == other.timer and self.spawn_id == other.spawn_id
 
 
-        class PortId(Id):
-            __slots__ = 'port', 'is_follower'
+class FrameStart(Base):
+    """Start-of-frame data."""
 
-            def __init__(self, stream):
-                (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
+    __slots__ = 'random_seed'
+
+    random_seed: int #: The random seed at the start of the frame
+
+    def __init__(self, random_seed: int):
+        self.random_seed = random_seed
+
+    @classmethod
+    def _parse(cls, stream):
+        (random_seed,) = unpack('I', stream)
+        random_seed = random_seed
+        return cls(random_seed)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.random_seed == other.random_seed
 
 
-        class Type(Enum):
-            START = 'start'
-            END = 'end'
-            PRE = 'pre'
-            POST = 'post'
-            ITEM = 'item'
+class FrameEnd(Base):
+    """End-of-frame data."""
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def _parse(cls, stream):
+        return cls()
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return True
+
+
+class Event(Base):
+    """Temporary wrapper used while parsing frame data."""
+
+    __slots__ = 'id', 'type', 'data'
+
+    def __init__(self, id, type, data):
+        self.id = id
+        self.type = type
+        self.data = data
+
+
+class Id(Base):
+    __slots__ = 'frame'
+
+    def __init__(self, stream):
+        (self.frame,) = unpack('i', stream)
+
+
+class PortId(Id):
+    __slots__ = 'port', 'is_follower'
+
+    def __init__(self, stream):
+        (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
+
+
+class SomethingType(Enum):
+    START = 'start'
+    END = 'end'
+    PRE = 'pre'
+    POST = 'post'
+    ITEM = 'item'
 
 
 class Position(Base):
@@ -717,21 +716,21 @@ class Triggers(Base):
         return other.logical == self.logical and other.physical == self.physical
 
 
-    class Physical(Base):
-        __slots__ = 'l', 'r'
+class Physical(Base):
+    __slots__ = 'l', 'r'
 
-        l: float
-        r: float
+    l: float
+    r: float
 
-        def __init__(self, l: float, r: float):
-            self.l = l
-            self.r = r
+    def __init__(self, l: float, r: float):
+        self.l = l
+        self.r = r
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return NotImplemented
-            # Should we add an epsilon to these comparisons? When are people going to be comparing trigger states for equality, other than in our tests?
-            return other.l == self.l and other.r == self.r
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        # Should we add an epsilon to these comparisons? When are people going to be comparing trigger states for equality, other than in our tests?
+        return other.l == self.l and other.r == self.r
 
 
 class Buttons(Base):
@@ -750,53 +749,53 @@ class Buttons(Base):
         return other.logical is self.logical and other.physical is self.physical
 
 
-    class Logical(IntFlag):
-        TRIGGER_ANALOG = 2**31
-        CSTICK_RIGHT = 2**23
-        CSTICK_LEFT = 2**22
-        CSTICK_DOWN = 2**21
-        CSTICK_UP = 2**20
-        JOYSTICK_RIGHT = 2**19
-        JOYSTICK_LEFT = 2**18
-        JOYSTICK_DOWN = 2**17
-        JOYSTICK_UP = 2**16
-        START = 2**12
-        Y = 2**11
-        X = 2**10
-        B = 2**9
-        A = 2**8
-        L = 2**6
-        R = 2**5
-        Z = 2**4
-        DPAD_UP = 2**3
-        DPAD_DOWN = 2**2
-        DPAD_RIGHT = 2**1
-        DPAD_LEFT = 2**0
-        NONE = 0
+class Logical(IntFlag):
+    TRIGGER_ANALOG = 2**31
+    CSTICK_RIGHT = 2**23
+    CSTICK_LEFT = 2**22
+    CSTICK_DOWN = 2**21
+    CSTICK_UP = 2**20
+    JOYSTICK_RIGHT = 2**19
+    JOYSTICK_LEFT = 2**18
+    JOYSTICK_DOWN = 2**17
+    JOYSTICK_UP = 2**16
+    START = 2**12
+    Y = 2**11
+    X = 2**10
+    B = 2**9
+    A = 2**8
+    L = 2**6
+    R = 2**5
+    Z = 2**4
+    DPAD_UP = 2**3
+    DPAD_DOWN = 2**2
+    DPAD_RIGHT = 2**1
+    DPAD_LEFT = 2**0
+    NONE = 0
 
 
-    class Physical(IntFlag):
-        START = 2**12
-        Y = 2**11
-        X = 2**10
-        B = 2**9
-        A = 2**8
-        L = 2**6
-        R = 2**5
-        Z = 2**4
-        DPAD_UP = 2**3
-        DPAD_DOWN = 2**2
-        DPAD_RIGHT = 2**1
-        DPAD_LEFT = 2**0
-        NONE = 0
+class Physical(IntFlag):
+    START = 2**12
+    Y = 2**11
+    X = 2**10
+    B = 2**9
+    A = 2**8
+    L = 2**6
+    R = 2**5
+    Z = 2**4
+    DPAD_UP = 2**3
+    DPAD_DOWN = 2**2
+    DPAD_RIGHT = 2**1
+    DPAD_LEFT = 2**0
+    NONE = 0
 
-        def pressed(self):
-            """Returns a list of all buttons being pressed."""
-            pressed = []
-            for b in self.__class__:
-                if self & b:
-                    pressed.append(b)
-            return pressed
+    def pressed(self):
+        """Returns a list of all buttons being pressed."""
+        pressed = []
+        for b in self.__class__:
+            if self & b:
+                pressed.append(b)
+        return pressed
 
 
 class LCancel(IntEnum):

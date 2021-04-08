@@ -231,12 +231,12 @@ def _parse_try(input: BinaryIO, handlers: Dict[ParseEvent, Callable[[Any], None]
         raise e
 
 
-def _parse_open(input: os.PathLike[str], handlers: Dict[ParseEvent, Callable[[Any], None]]) -> None:
+def _parse_open(input: 'os.PathLike[Any]', handlers: Dict[ParseEvent, Callable[[Any], None]]) -> None:
     with open(input, 'rb') as f:
         _parse_try(f, handlers)
 
 
-def parse(input: Union[BinaryIO, str, os.PathLike[str]], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
+def parse(input: Union[BinaryIO, str, 'os.PathLike[Any]'], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
     """Parse a Slippi replay.
 
     :param input: replay file object or path

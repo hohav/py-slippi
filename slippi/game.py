@@ -2,7 +2,7 @@ import io, os
 from logging import debug
 from typing import BinaryIO, List, Optional, Union
 
-from .event import FIRST_FRAME_INDEX, End, Frame, Start
+from .event import FIRST_FRAME_INDEX, GameEnd, Frame, Start
 from .metadata import Metadata
 from .parse import ParseEvent, parse
 from .util import *
@@ -13,7 +13,7 @@ class Game(Base):
 
     start: Optional[Start] #: Information about the start of the game
     frames: List[Frame] #: Every frame of the game, indexed by frame number
-    end: Optional[End] #: Information about the end of the game
+    end: Optional[GameEnd] #: Information about the end of the game
     metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
     metadata_raw: Optional[dict] #: Raw JSON metadata, for debugging and forward-compatibility
 

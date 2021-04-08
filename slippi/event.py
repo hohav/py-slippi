@@ -26,14 +26,14 @@ class Start(Base):
     """Information used to initialize the game such as the game mode, settings, characters & stage."""
 
     is_teams: bool #: True if this was a teams game
-    players: Tuple[Optional[Start.Player]] #: Players in this game by port (port 1 is at index 0; empty ports will contain None)
+    players: Tuple[Optional[Player]] #: Players in this game by port (port 1 is at index 0; empty ports will contain None)
     random_seed: int #: Random seed before the game start
-    slippi: Start.Slippi #: Information about the Slippi recorder that generated this replay
+    slippi: Slippi #: Information about the Slippi recorder that generated this replay
     stage: sid.Stage #: Stage on which this game was played
     is_pal: Optional[bool] #: `added(1.5.0)` True if this was a PAL version of Melee
     is_frozen_ps: Optional[bool] #: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
 
-    def __init__(self, is_teams: bool, players: Tuple[Optional[Start.Player]], random_seed: int, slippi: Start.Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
+    def __init__(self, is_teams: bool, players: Tuple[Optional[Player]], random_seed: int, slippi: Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
         self.is_teams = is_teams
         self.players = players
         self.random_seed = random_seed
@@ -44,7 +44,7 @@ class Start(Base):
 
     @classmethod
     def _parse(cls, stream):
-        slippi_ = cls.Slippi._parse(stream)
+        slippi_ = Slippi._parse(stream)
 
         stream.read(8)
         (is_teams,) = unpack('?', stream)
@@ -62,13 +62,13 @@ class Start(Base):
             (team,) = unpack('B', stream)
             stream.read(26)
 
-            try: type = cls.Player.Type(type)
+            try: type = PlayerType(type)
             except ValueError: type = None
 
             if type is not None:
                 character = sid.CSSCharacter(character)
-                team = cls.Player.Team(team) if is_teams else None
-                player = cls.Player(character=character, type=type, stocks=stocks, costume=costume, team=team)
+                team = Team(team) if is_teams else None
+                player = Player(character=character, type=type, stocks=stocks, costume=costume, team=team)
             else:
                 player = None
 
@@ -80,10 +80,10 @@ class Start(Base):
         try: # v1.0.0
             for i in PORTS:
                 (dash_back, shield_drop) = unpack('LL', stream)
-                dash_back = cls.Player.UCF.DashBack(dash_back)
-                shield_drop = cls.Player.UCF.ShieldDrop(shield_drop)
+                dash_back = DashBack(dash_back)
+                shield_drop = ShieldDrop(shield_drop)
                 if players[i]:
-                    players[i].ucf = cls.Player.UCF(dash_back, shield_drop)
+                    players[i].ucf = UCF(dash_back, shield_drop)
         except EOFError: pass
 
         try: # v1.3.0
@@ -123,14 +123,14 @@ class Start(Base):
 class Slippi(Base):
     """Information about the Slippi recorder that generated this replay."""
 
-    version: Start.Slippi.Version #: Slippi version number
+    version: SlippiVersion #: Slippi version number
 
-    def __init__(self, version: Start.Slippi.Version):
+    def __init__(self, version: SlippiVersion):
         self.version = version
 
     @classmethod
     def _parse(cls, stream):
-        return cls(cls.Version(*unpack('BBBB', stream)))
+        return cls(SlippiVersion(*unpack('BBBB', stream)))
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -138,7 +138,7 @@ class Slippi(Base):
         return self.version == other.version
 
 
-class Version(Base):
+class SlippiVersion(Base):
 
     major: int
     minor: int
@@ -161,20 +161,20 @@ class Version(Base):
 
 class Player(Base):
     character: sid.CSSCharacter #: Character selected
-    type: Start.Player.Type #: Player type (human/cpu)
+    type: PlayerType #: Player type (human/cpu)
     stocks: int #: Starting stock count
     costume: int #: Costume ID
-    team: Optional[Start.Player.Team] #: Team, if this was a teams game
-    ucf: Start.Player.UCF #: UCF feature toggles
+    team: Optional[Team] #: Team, if this was a teams game
+    ucf: UCF #: UCF feature toggles
     tag: Optional[str] #: Name tag
 
-    def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
+    def __init__(self, character: sid.CSSCharacter, type: PlayerType, stocks: int, costume: int, team: Optional[Team], ucf: UCF = None, tag: Optional[str] = None):
         self.character = character
         self.type = type
         self.stocks = stocks
         self.costume = costume
         self.team = team
-        self.ucf = ucf or self.UCF()
+        self.ucf = ucf or UCF()
         self.tag = tag
 
     def __eq__(self, other):
@@ -183,7 +183,7 @@ class Player(Base):
         return self.character is other.character and self.type is other.type and self.stocks == other.stocks and self.costume == other.costume and self.team is other.team and self.ucf == other.ucf
 
 
-class Type(IntEnum):
+class PlayerType(IntEnum):
     HUMAN = 0
     CPU = 1
 
@@ -195,12 +195,12 @@ class Team(IntEnum):
 
 
 class UCF(Base):
-    dash_back: Start.Player.UCF.DashBack #: UCF dashback status
-    shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
+    dash_back: DashBack #: UCF dashback status
+    shield_drop: ShieldDrop #: UCF shield drop status
 
-    def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
-        self.dash_back = dash_back or self.DashBack.OFF
-        self.shield_drop = shield_drop or self.ShieldDrop.OFF
+    def __init__(self, dash_back: DashBack = None, shield_drop: ShieldDrop = None):
+        self.dash_back = dash_back or DashBack.OFF
+        self.shield_drop = shield_drop or ShieldDrop.OFF
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -238,7 +238,7 @@ class GameEnd(Base):
             lras_initiator = lras if lras < len(PORTS) else None
         except EOFError:
             lras_initiator = None
-        return cls(Method(method), lras_initiator)
+        return cls(GameEndMethod(method), lras_initiator)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -260,10 +260,10 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: Sequence[Optional[Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
-    items: Sequence[Item] #: `added(3.0.0)` Active items (includes projectiles)
-    start: Optional[Start] #: `added(2.2.0)` Start-of-frame data
-    end: Optional[End] #: `added(2.2.0)` End-of-frame data
+    ports: Sequence[Optional[FrameEventPort]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
+    items: Sequence[FrameItem] #: `added(3.0.0)` Active items (includes projectiles)
+    start: Optional[FrameStart] #: `added(2.2.0)` Start-of-frame data
+    end: Optional[FrameEnd] #: `added(2.2.0)` End-of-frame data
 
     def __init__(self, index: int):
         self.index = index
@@ -276,7 +276,7 @@ class Frame(Base):
         self.ports = tuple(self.ports)
         self.items = tuple(self.items)
 
-class Port(Base):
+class FrameEventPort(Base):
     """Frame data for a given port. Can include two characters' frame data (ICs)."""
 
     __slots__ = 'leader', 'follower'
@@ -450,7 +450,7 @@ class Post(Base):
             l_cancel=l_cancel)
 
 
-class Item(Base):
+class FrameItem(Base):
     """An active item (includes projectiles)."""
 
     __slots__ = 'type', 'state', 'direction', 'velocity', 'position', 'damage', 'timer', 'spawn_id'
@@ -531,7 +531,7 @@ class FrameEnd(Base):
         return True
 
 
-class Event(Base):
+class FrameEvent(Base):
     """Temporary wrapper used while parsing frame data."""
 
     __slots__ = 'id', 'type', 'data'
@@ -542,21 +542,21 @@ class Event(Base):
         self.data = data
 
 
-class Id(Base):
+class FrameEventId(Base):
     __slots__ = 'frame'
 
     def __init__(self, stream):
         (self.frame,) = unpack('i', stream)
 
 
-class PortId(Id):
+class FrameEventPortId(FrameEventId):
     __slots__ = 'port', 'is_follower'
 
     def __init__(self, stream):
         (self.frame, self.port, self.is_follower) = unpack('iB?', stream)
 
 
-class SomethingType(Enum):
+class FrameEventType(Enum):
     START = 'start'
     END = 'end'
     PRE = 'pre'
@@ -704,11 +704,11 @@ class Triggers(Base):
     __slots__ = 'logical', 'physical'
 
     logical: float #: Processed analog trigger position
-    physical: Triggers.Physical #: Physical analog trigger positions (useful for APM)
+    physical: TriggersPhysical #: Physical analog trigger positions (useful for APM)
 
     def __init__(self, logical: float, physical_x: float, physical_y: float):
         self.logical = logical
-        self.physical = self.Physical(physical_x, physical_y)
+        self.physical = TriggersPhysical(physical_x, physical_y)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -716,7 +716,7 @@ class Triggers(Base):
         return other.logical == self.logical and other.physical == self.physical
 
 
-class Physical(Base):
+class TriggersPhysical(Base):
     __slots__ = 'l', 'r'
 
     l: float
@@ -736,12 +736,12 @@ class Physical(Base):
 class Buttons(Base):
     __slots__ = 'logical', 'physical'
 
-    logical: Buttons.Logical #: Processed button-state bitmask
-    physical: Buttons.Physical #: Physical button-state bitmask
+    logical: Logical #: Processed button-state bitmask
+    physical: Physical #: Physical button-state bitmask
 
     def __init__(self, logical, physical):
-        self.logical = self.Logical(logical)
-        self.physical = self.Physical(physical)
+        self.logical = Logical(logical)
+        self.physical = Physical(physical)
 
     def __eq__(self, other):
         if not isinstance(other, Buttons):

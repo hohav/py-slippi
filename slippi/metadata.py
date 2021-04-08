@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 
 from . import event as evt
 from . import id as sid
+from .event import Player
 from .util import *
 
 
@@ -14,11 +15,11 @@ class Metadata(Base):
 
     date: datetime #: Game start date & time
     duration: int #: Duration of game, in frames
-    platform: Metadata.Platform #: Platform the game was played on (console/dolphin)
-    players: Tuple[Optional[Metadata.Player]] #: Player metadata by port (port 1 is at index 0; empty ports will contain None)
+    platform: Platform #: Platform the game was played on (console/dolphin)
+    players: Tuple[Optional[Player]] #: Player metadata by port (port 1 is at index 0; empty ports will contain None)
     console_name: Optional[str] #: Name of the console the game was played on, if any
 
-    def __init__(self, date: datetime, duration: int, platform: Metadata.Platform, players: Tuple[Optional[Metadata.Player]], console_name: Optional[str] = None):
+    def __init__(self, date: datetime, duration: int, platform: Platform, players: Tuple[Optional[Player]], console_name: Optional[str] = None):
         self.date = date
         self.duration = duration
         self.platform = platform
@@ -33,12 +34,12 @@ class Metadata(Base):
         date = datetime(*m[:7], timezone(timedelta(hours=m[7], minutes=m[8])))
         try: duration = 1 + json['lastFrame'] - evt.FIRST_FRAME_INDEX
         except KeyError: duration = None
-        platform = cls.Platform(json['playedOn'])
+        platform = Platform(json['playedOn'])
         try: console_name = json['consoleNick']
         except KeyError: console_name = None
         players = [None, None, None, None]
         for i in PORTS:
-            try: players[i] = cls.Player._parse(json['players'][str(i)])
+            try: players[i] = PlayerMetadata._parse(json['players'][str(i)])
             except KeyError: pass
         return cls(date=date, duration=duration, platform=platform, players=tuple(players), console_name=console_name)
 
@@ -48,11 +49,11 @@ class Metadata(Base):
         return self.date == other.date and self.duration == other.duration and self.platform == other.platform and self.players == other.players and self.console_name == other.console_name
 
 
-class Player(Base):
+class PlayerMetadata(Base):
     characters: Dict[sid.InGameCharacter, int] #: Character(s) used, with usage duration in frames (for Zelda/Sheik)
-    netplay: Optional[Metadata.Player.Netplay] #: Netplay info (Dolphin-only)
+    netplay: Optional[NetplayMetadata] #: Netplay info (Dolphin-only)
 
-    def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Metadata.Player.Netplay] = None):
+    def __init__(self, characters: Dict[sid.InGameCharacter, int], netplay: Optional[Netplay] = None):
         self.characters = characters
         self.netplay = netplay
 
@@ -62,7 +63,7 @@ class Player(Base):
         for char_id, duration in json['characters'].items():
             characters[sid.InGameCharacter(int(char_id))] = duration
         try:
-            netplay = cls.Netplay(code=json['names']['code'], name=json['names']['netplay'])
+            netplay = NetplayMetadata(code=json['names']['code'], name=json['names']['netplay'])
         except KeyError: netplay = None
         return cls(characters, netplay)
 
@@ -72,7 +73,7 @@ class Player(Base):
         return self.characters == other.characters and self.netplay == other.netplay
 
 
-class Netplay(Base):
+class NetplayMetadata(Base):
     code: str #: Netplay code (e.g. "ABCD#123")
     name: str #: Netplay nickname
 

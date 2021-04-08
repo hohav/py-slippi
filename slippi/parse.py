@@ -5,7 +5,8 @@ from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson
 
-from .event import End, EventType, Frame, Start
+from .event import GameEnd, EventType, Frame, Start, FrameEvent, FrameEventPortId, FrameEventType, FrameEventPort, \
+    FrameStart, FrameEnd, Data
 from .log import log
 from .metadata import Metadata
 from .util import *
@@ -80,27 +81,27 @@ def _parse_event(event_stream, payload_sizes):
         if event_type is EventType.GAME_START:
             event = Start._parse(stream)
         elif event_type is EventType.FRAME_PRE:
-            event = Frame.Event(Frame.Event.PortId(stream),
-                                Frame.Event.Type.PRE,
+            event = FrameEvent(FrameEventPortId(stream),
+                                FrameEventType.PRE,
                                 stream)
         elif event_type is EventType.FRAME_POST:
-            event = Frame.Event(Frame.Event.PortId(stream),
-                                Frame.Event.Type.POST,
+            event = FrameEvent(FrameEventPortId(stream),
+                                FrameEventType.POST,
                                 stream)
         elif event_type is EventType.FRAME_START:
-            event = Frame.Event(Frame.Event.Id(stream),
-                                Frame.Event.Type.START,
+            event = FrameEvent(FrameEventPortId(stream),
+                                FrameEventType.START,
                                 stream)
         elif event_type is EventType.ITEM:
-            event = Frame.Event(Frame.Event.Id(stream),
-                                Frame.Event.Type.ITEM,
+            event = FrameEvent(FrameEventPortId(stream),
+                                FrameEventType.ITEM,
                                 stream)
         elif event_type is EventType.FRAME_END:
-            event = Frame.Event(Frame.Event.Id(stream),
-                                Frame.Event.Type.END,
+            event = FrameEvent(FrameEventPortId(stream),
+                                FrameEventType.END,
                                 stream)
         elif event_type is EventType.GAME_END:
-            event = End._parse(stream)
+            event = GameEnd._parse(stream)
         else:
             event = None
         return (1 + size, event)
@@ -128,11 +129,11 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler = handlers.get(ParseEvent.START)
             if handler:
                 handler(event)
-        elif isinstance(event, End):
+        elif isinstance(event, GameEnd):
             handler = handlers.get(ParseEvent.END)
             if handler:
                 handler(event)
-        elif isinstance(event, Frame.Event):
+        elif isinstance(event, FrameEvent):
             # Accumulate all events for a single frame into a single `Frame` object.
 
             # We can't use Frame Bookend events to detect end-of-frame,
@@ -147,29 +148,29 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             if not current_frame:
                 current_frame = Frame(event.id.frame)
 
-            if event.type is Frame.Event.Type.PRE or event.type is Frame.Event.Type.POST:
+            if event.type is FrameEventType.PRE or event.type is FrameEventType.POST:
                 port = current_frame.ports[event.id.port]
                 if not port:
-                    port = Frame.Port()
+                    port = FrameEventPort()
                     current_frame.ports[event.id.port] = port
 
                 if event.id.is_follower:
                     if port.follower is None:
-                        port.follower = Frame.Port.Data()
+                        port.follower = Data()
                     data = port.follower
                 else:
                     data = port.leader
 
-                if event.type is Frame.Event.Type.PRE:
+                if event.type is FrameEventType.PRE:
                     data._pre = event.data
                 else:
                     data._post = event.data
-            elif event.type is Frame.Event.Type.ITEM:
+            elif event.type is FrameEventType.ITEM:
                 current_frame.items.append(Frame.Item._parse(event.data))
-            elif event.type is Frame.Event.Type.START:
-                current_frame.start = Frame.Start._parse(event.data)
-            elif event.type is Frame.Event.Type.END:
-                current_frame.end = Frame.End._parse(event.data)
+            elif event.type is FrameEventType.START:
+                current_frame.start = FrameStart._parse(event.data)
+            elif event.type is FrameEvent.Type.END:
+                current_frame.end = FrameEnd._parse(event.data)
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
 

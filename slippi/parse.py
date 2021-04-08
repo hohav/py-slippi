@@ -6,7 +6,7 @@ from typing import BinaryIO, Callable, Dict, Union
 import ubjson
 
 from .event import GameEnd, EventType, Frame, Start, FrameEvent, FrameEventPortId, FrameEventType, FrameEventPort, \
-    FrameStart, FrameEnd, Data
+    FrameStart, FrameEnd, Data, FrameItem
 from .log import log
 from .metadata import Metadata
 from .util import *
@@ -166,10 +166,10 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
                 else:
                     data._post = event.data
             elif event.type is FrameEventType.ITEM:
-                current_frame.items.append(Frame.Item._parse(event.data))
+                current_frame.items.append(FrameItem._parse(event.data))
             elif event.type is FrameEventType.START:
                 current_frame.start = FrameStart._parse(event.data)
-            elif event.type is FrameEvent.Type.END:
+            elif event.type is FrameEventType.END:
                 current_frame.end = FrameEnd._parse(event.data)
             else:
                 raise Exception('unknown frame data type: %s' % event.data)

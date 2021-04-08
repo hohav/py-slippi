@@ -26,13 +26,6 @@ def path(name: str) -> str:
 
 
 class TestGame(unittest.TestCase):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self.pkgname: str = "slippi"
-        super().__init__(*args, **kwargs)
-        my_env = os.environ.copy()
-        self.pypath: str = my_env.get("PYTHONPATH", os.getcwd())
-        self.mypy_opts: List[str] = ['--ignore-missing-imports']
-
     def _game(self, name: str) -> Game:
         return Game(path(name))
 
@@ -60,19 +53,6 @@ class TestGame(unittest.TestCase):
                 button_seq.append(b)
             last_buttons = b
         return button_seq
-
-    def test_run_mypy_module(self) -> None:
-        """Run mypy on all module sources"""
-        mypy_call: List[str] = ["mypy"] + self.mypy_opts + ["-p", self.pkgname]
-        browse_result: int = subprocess.call(mypy_call, env=os.environ, cwd=self.pypath)
-        self.assertEqual(browse_result, 0, 'mypy on slippi')
-
-    def test_run_mypy_tests(self) -> None:
-        """Run mypy on all tests in module under the tests directory"""
-        for test_file in glob.iglob(f'{os.getcwd()}/tests/*.py'):
-            mypy_call: List[str] = ["mypy"] + self.mypy_opts + [test_file]
-            test_result: int = subprocess.call(mypy_call, env=os.environ, cwd=self.pypath)
-            self.assertEqual(test_result, 0, f'mypy on test {test_file}')
 
     def test_slippi_old_version(self) -> None:
         game = self._game('v0.1')

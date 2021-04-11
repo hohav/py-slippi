@@ -7,7 +7,7 @@ from slippi.id import CSSCharacter, InGameCharacter, Item, Stage
 from slippi.log import log
 from slippi.metadata import Metadata, Platform, PlayerMetadata, NetplayMetadata
 from slippi.event import Buttons, Direction, GameEnd, Frame, Position, Start, Triggers, Velocity, Player, Slippi, \
-    SlippiVersion, GameEndMethod, UCF, Physical, Logical, PlayerType
+    SlippiVersion, GameEndMethod, UCF, Physical, Logical, PlayerType, FrameItem
 from slippi.parse import ParseEvent
 
 def norm(f):
@@ -203,7 +203,7 @@ class TestGame(unittest.TestCase):
                 if not i.spawn_id in items:
                     items[i.spawn_id] = i
         self.assertEqual(items, {
-            0: Frame.Item(
+            0: FrameItem(
                 damage=0,
                 direction=Direction.RIGHT,
                 position=Position(-62.7096061706543, -1.4932749271392822),
@@ -212,7 +212,7 @@ class TestGame(unittest.TestCase):
                 timer=140.0,
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0)),
-            1: Frame.Item(
+            1: FrameItem(
                 damage=0,
                 direction=Direction.LEFT,
                 position=Position(20.395559310913086, -1.4932749271392822),
@@ -221,7 +221,7 @@ class TestGame(unittest.TestCase):
                 timer=140.0,
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0)),
-            2: Frame.Item(
+            2: FrameItem(
                 damage=0,
                 direction=Direction.RIGHT,
                 position=Position(-3.982539176940918, -1.4932749271392822),

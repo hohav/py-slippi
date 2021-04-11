@@ -6,7 +6,7 @@ from typing import BinaryIO, Callable, Dict, Union
 import ubjson
 
 from .event import GameEnd, EventType, Frame, Start, FrameEvent, FrameEventPortId, FrameEventType, FrameEventPort, \
-    FrameStart, FrameEnd, Data, FrameItem
+    FrameStart, FrameEnd, Data, FrameItem, FrameEventId
 from .log import log
 from .metadata import Metadata
 from .util import *
@@ -89,15 +89,15 @@ def _parse_event(event_stream, payload_sizes):
                                 FrameEventType.POST,
                                 stream)
         elif event_type is EventType.FRAME_START:
-            event = FrameEvent(FrameEventPortId(stream),
+            event = FrameEvent(FrameEventId(stream),
                                 FrameEventType.START,
                                 stream)
         elif event_type is EventType.ITEM:
-            event = FrameEvent(FrameEventPortId(stream),
+            event = FrameEvent(FrameEventId(stream),
                                 FrameEventType.ITEM,
                                 stream)
         elif event_type is EventType.FRAME_END:
-            event = FrameEvent(FrameEventPortId(stream),
+            event = FrameEvent(FrameEventId(stream),
                                 FrameEventType.END,
                                 stream)
         elif event_type is EventType.GAME_END:

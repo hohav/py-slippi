@@ -52,7 +52,7 @@ def unpack(fmt: str, stream: BinaryIO) -> Tuple[Any, ...]:
 def expect_bytes(expected_bytes: bytes, stream: BinaryIO) -> None:
     read_bytes = stream.read(len(expected_bytes))
     if read_bytes != expected_bytes:
-        raise Exception(f'expected {expected_bytes!r}, but got: {read_bytes!r}')
+        raise Exception(f'expected {repr(expected_bytes)}, but got: {repr(read_bytes)}')
 
 
 class Base:

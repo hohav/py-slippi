@@ -156,7 +156,7 @@ def _parse_events(stream: BinaryIO, payload_sizes: Dict[Any, Any], total_size: i
                 port = current_frame.ports[event.id.port]
                 if not port:
                     port = Frame.Port()
-                    current_frame.ports[event.id.port] = port
+                    current_frame.ports[event.id.port] = port  # type: ignore[index]
 
                 if event.id.is_follower:
                     if port.follower is None:
@@ -170,7 +170,7 @@ def _parse_events(stream: BinaryIO, payload_sizes: Dict[Any, Any], total_size: i
                 else:
                     data._post = event.data
             elif event.type is Frame.Event.Type.ITEM:
-                current_frame.items.append(Frame.Item._parse(event.data))
+                current_frame.items.append(Frame.Item._parse(event.data))  # type: ignore[attr-defined]
             elif event.type is Frame.Event.Type.START:
                 current_frame.start = Frame.Start._parse(event.data)
             elif event.type is Frame.Event.Type.END:

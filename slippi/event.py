@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, BinaryIO, Optional, Iterable, Tuple, Union, List
+from typing import Any, BinaryIO, Optional, Iterable, Tuple, Union, List, Sequence
 
 from . import id as sid
 from .util import *
@@ -268,8 +268,8 @@ class Frame(Base):
     __slots__ = 'index', 'ports', 'items', 'start', 'end'
 
     index: int
-    ports: List[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
-    items: List[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
+    ports: Sequence[Optional[Frame.Port]] #: Frame data for each port (port 1 is at index 0; empty ports will contain None)
+    items: Sequence[Frame.Item] #: `added(3.0.0)` Active items (includes projectiles)
     start: Optional[Frame.Start] #: `added(2.2.0)` Start-of-frame data
     end: Optional[Frame.End] #: `added(2.2.0)` End-of-frame data
 

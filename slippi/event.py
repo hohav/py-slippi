@@ -281,8 +281,8 @@ class Frame(Base):
         self.end = None
 
     def _finalize(self) -> None:
-        self.ports = self.ports
-        self.items = self.items
+        self.ports = tuple(self.ports)
+        self.items = tuple(self.items)
 
 
     class Port(Base):

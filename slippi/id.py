@@ -1,6 +1,6 @@
 # These IDs (and other very useful info for this project) came from the SSBM Data Sheet: https://docs.google.com/spreadsheets/d/1JX2w-r2fuvWuNgGb6D3Cs4wHQKLFegZe2jhbBuIhCG8
 
-from .util import *
+from .util import IntEnum
 
 
 class ActionState(IntEnum):

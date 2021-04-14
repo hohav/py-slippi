@@ -6,7 +6,7 @@ from typing import Dict, Optional, Tuple
 
 from . import event as evt
 from . import id as sid
-from .util import *
+from .util import Base, Enum, PORTS
 
 
 class Metadata(Base):

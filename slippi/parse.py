@@ -8,7 +8,7 @@ import ubjson
 from .event import End, EventType, Frame, Start
 from .log import log
 from .metadata import Metadata
-from .util import *
+from .util import Enum, expect_bytes, unpack
 
 
 class ParseEvent(Enum):

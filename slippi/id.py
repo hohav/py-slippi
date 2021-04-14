@@ -1,5 +1,5 @@
 # These IDs (and other very useful info for this project) came from the SSBM Data Sheet: https://docs.google.com/spreadsheets/d/1JX2w-r2fuvWuNgGb6D3Cs4wHQKLFegZe2jhbBuIhCG8
-
+from __future__ import annotations
 from .util import *
 
 
@@ -425,7 +425,7 @@ class CSSCharacter(IntEnum):
     POPO = 32
 
     @classmethod
-    def from_internal_id(cls, internal_id):
+    def from_internal_id(cls, internal_id: int) -> CSSCharacter:
         char = InGameCharacter(internal_id)
         if char is InGameCharacter.NANA or char is InGameCharacter.POPO:
             return cls.ICE_CLIMBERS

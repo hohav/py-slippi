@@ -1,8 +1,11 @@
+# type: ignore[attr-defined]
 #!/usr/bin/python3
 
 import datetime, glob, os, subprocess, unittest
+from typing import Any, List
 
-from slippi import Game, parse
+from slippi.game import Game
+from slippi.parse import parse
 from slippi.id import CSSCharacter, InGameCharacter, Item, Stage
 from slippi.log import log
 from slippi.metadata import Metadata
@@ -14,30 +17,23 @@ BPhys = Buttons.Physical
 BLog = Buttons.Logical
 
 
-def norm(f):
+def norm(f: float) -> int:
     return 1 if f > 0.01 else -1 if f < -0.01 else 0
 
 
-def path(name):
+def path(name: str) -> str:
     return os.path.join(os.path.dirname(__file__), 'replays', name + '.slp')
 
 
 class TestGame(unittest.TestCase):
-    def __init__(self, *args, **kwargs) -> None:
-        self.pkgname: str = "slippi"
-        super().__init__(*args, **kwargs)
-        my_env = os.environ.copy()
-        self.pypath: str = my_env.get("PYTHONPATH", os.getcwd())
-        self.mypy_opts: List[str] = ['--ignore-missing-imports']
-
-    def _game(self, name):
+    def _game(self, name: str) -> Game:
         return Game(path(name))
 
-    def _stick_seq(self, game):
+    def _stick_seq(self, game: Game) -> Any:
         pass
 
     # not used yet because the recorder currently puts bogus values in triggers.physical
-    def _trigger_seq(self, game):
+    def _trigger_seq(self, game: Game) -> List[Any]:
         last_triggers = None
         trigger_seq = []
         for frame in game.frames:
@@ -48,7 +44,7 @@ class TestGame(unittest.TestCase):
             last_triggers = t
         return trigger_seq
 
-    def _button_seq(self, game):
+    def _button_seq(self, game: Game) -> List[Any]:
         last_buttons = None
         button_seq = []
         for frame in game.frames:
@@ -58,20 +54,7 @@ class TestGame(unittest.TestCase):
             last_buttons = b
         return button_seq
 
-    def test_run_mypy_module(self):
-        """Run mypy on all module sources"""
-        mypy_call: List[str] = ["mypy"] + self.mypy_opts + ["-p", self.pkgname]
-        browse_result: int = subprocess.call(mypy_call, env=os.environ, cwd=self.pypath)
-        self.assertEqual(browse_result, 0, 'mypy on slippi')
-
-    def test_run_mypy_tests(self):
-        """Run mypy on all tests in module under the tests directory"""
-        for test_file in glob.iglob(f'{os.getcwd()}/tests/*.py'):
-            mypy_call: List[str] = ["mypy"] + self.mypy_opts + [test_file]
-            test_result: int = subprocess.call(mypy_call, env=os.environ, cwd=self.pypath)
-            self.assertEqual(test_result, 0, f'mypy on test {test_file}')
-
-    def test_slippi_old_version(self):
+    def test_slippi_old_version(self) -> None:
         game = self._game('v0.1')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(0,1,0,0))
         self.assertEqual(game.metadata.duration, None)
@@ -79,7 +62,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(game.start.players[0].character, CSSCharacter.FOX)
         self.assertEqual(game.start.players[1].character, CSSCharacter.GANONDORF)
 
-    def test_game(self):
+    def test_game(self) -> None:
         game = self._game('game')
 
         self.assertEqual(game.metadata, Metadata._parse({
@@ -104,15 +87,15 @@ class TestGame(unittest.TestCase):
             slippi=Start.Slippi(Start.Slippi.Version(1,0,0,0)),
             stage=Stage.YOSHIS_STORY,
             players=(
-                Start.Player(character=CSSCharacter.MARTH, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(False, False)),
-                Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.CPU, stocks=4, costume=0, team=None, ucf=Start.Player.UCF(False, False)),
+                Start.Player(character=CSSCharacter.MARTH, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(Start.Player.UCF.DashBack.OFF, Start.Player.UCF.ShieldDrop.OFF)),
+                Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.CPU, stocks=4, costume=0, team=None, ucf=Start.Player.UCF(Start.Player.UCF.DashBack.OFF, Start.Player.UCF.ShieldDrop.OFF)),
                 None, None)))
 
         self.assertEqual(game.end, End(End.Method.CONCLUSIVE))
 
         self.assertEqual(game.metadata.duration, len(game.frames))
 
-    def test_ics(self):
+    def test_ics(self) -> None:
         game = self._game('ics')
         self.assertEqual(game.metadata.players[0].characters, {
             InGameCharacter.NANA: 344,
@@ -120,11 +103,11 @@ class TestGame(unittest.TestCase):
         self.assertEqual(game.start.players[0].character, CSSCharacter.ICE_CLIMBERS)
         self.assertIsNotNone(game.frames[0].ports[0].follower)
 
-    def test_ucf(self):
-        self.assertEqual(self._game('shield_drop').start.players[0].ucf, Start.Player.UCF(dash_back=False, shield_drop=True))
-        self.assertEqual(self._game('dash_back').start.players[0].ucf, Start.Player.UCF(dash_back=True, shield_drop=False))
+    def test_ucf(self) -> None:
+        self.assertEqual(self._game('shield_drop').start.players[0].ucf, Start.Player.UCF(dash_back=Start.Player.UCF.DashBack.OFF, shield_drop=Start.Player.UCF.ShieldDrop.UCF))
+        self.assertEqual(self._game('dash_back').start.players[0].ucf, Start.Player.UCF(dash_back=Start.Player.UCF.DashBack.UCF, shield_drop=Start.Player.UCF.ShieldDrop.OFF))
 
-    def test_buttons_lrzs(self):
+    def test_buttons_lrzs(self) -> None:
         game = self._game('buttons_lrzs')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.TRIGGER_ANALOG, BPhys.NONE),
@@ -134,7 +117,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.TRIGGER_ANALOG|BLog.A|BLog.Z, BPhys.Z),
             Buttons(BLog.START, BPhys.START)])
 
-    def test_buttons_abxy(self):
+    def test_buttons_abxy(self) -> None:
         game = self._game('buttons_abxy')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.A, BPhys.A),
@@ -142,7 +125,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.X, BPhys.X),
             Buttons(BLog.Y, BPhys.Y)])
 
-    def test_dpad_udlr(self):
+    def test_dpad_udlr(self) -> None:
         game = self._game('dpad_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.DPAD_UP, BPhys.DPAD_UP),
@@ -150,7 +133,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.DPAD_LEFT, BPhys.DPAD_LEFT),
             Buttons(BLog.DPAD_RIGHT, BPhys.DPAD_RIGHT)])
 
-    def test_cstick_udlr(self):
+    def test_cstick_udlr(self) -> None:
         game = self._game('cstick_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.CSTICK_UP, BPhys.NONE),
@@ -158,7 +141,7 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.CSTICK_LEFT, BPhys.NONE),
             Buttons(BLog.CSTICK_RIGHT, BPhys.NONE)])
 
-    def test_joystick_udlr(self):
+    def test_joystick_udlr(self) -> None:
         game = self._game('joystick_udlr')
         self.assertEqual(self._button_seq(game), [
             Buttons(BLog.JOYSTICK_UP, BPhys.NONE),
@@ -166,21 +149,21 @@ class TestGame(unittest.TestCase):
             Buttons(BLog.JOYSTICK_LEFT, BPhys.NONE),
             Buttons(BLog.JOYSTICK_RIGHT, BPhys.NONE)])
 
-    def test_nintendont(self):
+    def test_nintendont(self) -> None:
         game = self._game('nintendont')
         self.assertEqual(game.metadata.platform, Metadata.Platform.NINTENDONT)
 
-    def test_netplay_name(self):
+    def test_netplay_name(self) -> None:
         game = self._game('netplay')
         players = game.metadata.players
         self.assertEqual(players[0].netplay, Metadata.Player.Netplay(code='ABCD#123', name='abcdefghijk'))
         self.assertEqual(players[1].netplay, Metadata.Player.Netplay(code='XX#000', name='nobody'))
 
-    def test_console_name(self):
+    def test_console_name(self) -> None:
         game = self._game('console_name')
         self.assertEqual(game.metadata.console_name, 'Station 1')
 
-    def test_metadata_json(self):
+    def test_metadata_json(self) -> None:
         game = self._game('game')
         self.assertEqual(game.metadata_raw, {
             'lastFrame': 5085,
@@ -190,16 +173,16 @@ class TestGame(unittest.TestCase):
                 '1': {'characters': {'1': 5209}}},
             'startAt': '2018-06-22T07:52:59Z'})
 
-    def test_v2(self):
+    def test_v2(self) -> None:
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))
 
-    def test_unknown_event(self):
+    def test_unknown_event(self) -> None:
         with self.assertLogs(log, 'INFO') as log_context:
             game = self._game('unknown_event')
         self.assertEqual(log_context.output, ['INFO:root:ignoring unknown event type: 0xff'])
 
-    def test_items(self):
+    def test_items(self) -> None:
         game = self._game('items')
         items = {}
         for f in game.frames:
@@ -213,7 +196,7 @@ class TestGame(unittest.TestCase):
                 position=Position(-62.7096061706543, -1.4932749271392822),
                 spawn_id=0,
                 state=0,
-                timer=140.0,
+                timer=140,
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0)),
             1: Frame.Item(
@@ -222,7 +205,7 @@ class TestGame(unittest.TestCase):
                 position=Position(20.395559310913086, -1.4932749271392822),
                 spawn_id=1,
                 state=0,
-                timer=140.0,
+                timer=140,
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0)),
             2: Frame.Item(
@@ -231,15 +214,15 @@ class TestGame(unittest.TestCase):
                 position=Position(-3.982539176940918, -1.4932749271392822),
                 spawn_id=2,
                 state=0,
-                timer=140.0,
+                timer=140,
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0))})
 
 
 class TestParse(unittest.TestCase):
-    def test_parse(self):
-        metadata = None
-        def set_metadata(x):
+    def test_parse(self) -> None:
+        metadata: Any = None
+        def set_metadata(x: Any) -> None:
             nonlocal metadata
             metadata = x
         parse(path('game'), {ParseEvent.METADATA: set_metadata})

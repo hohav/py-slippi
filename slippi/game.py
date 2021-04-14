@@ -17,7 +17,7 @@ class Game(Base):
     metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
     metadata_raw: Optional[dict] #: Raw JSON metadata, for debugging and forward-compatibility
 
-    def __init__(self, input: Union[str, BinaryIO, os.PathLike]):
+    def __init__(self, input: Union[BinaryIO, str, os.PathLike]):
         """Parse a Slippi replay.
 
         :param input: replay file object or path"""

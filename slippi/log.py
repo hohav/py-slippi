@@ -1,4 +1,5 @@
-import logging, os
+import logging
+import os
 
 from termcolor import colored
 

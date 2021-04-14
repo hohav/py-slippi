@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
-import datetime, glob, os, subprocess, unittest
+import datetime
+import glob
+import os
+import subprocess
+import unittest
 
 from slippi import Game, parse
 from slippi.id import CSSCharacter, InGameCharacter, Item, Stage

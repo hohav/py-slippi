@@ -1,4 +1,4 @@
-import io, os
+import os
 from logging import debug
 from typing import BinaryIO, List, Optional, Union
 

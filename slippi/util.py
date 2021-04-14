@@ -1,4 +1,6 @@
-import enum, os, re, struct, sys
+import enum
+import re
+import struct
 from typing import Tuple
 
 from .log import log

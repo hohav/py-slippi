@@ -347,11 +347,11 @@ class Frame(Base):
                     (random_seed, state, position_x, position_y, direction, joystick_x, joystick_y, cstick_x, cstick_y, trigger_logical, buttons_logical, buttons_physical, trigger_physical_l, trigger_physical_r) = unpack('LHffffffffLHff', stream)
 
                     # v1.2.0
-                    try: raw_analog_x = unpack('B', stream)
+                    try: (raw_analog_x,) = unpack('B', stream)
                     except EOFError: raw_analog_x = None
 
                     # v1.4.0
-                    try: damage = unpack('f', stream)
+                    try: (damage,) = unpack('f', stream)
                     except EOFError: damage = None
 
                     return cls(

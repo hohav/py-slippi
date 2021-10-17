@@ -1,3 +1,4 @@
 py-ubjson~=0.16
 termcolor~=1.1
 mypy~=0.812
+types-termcolor~=1.1

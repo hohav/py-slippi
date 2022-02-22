@@ -112,6 +112,40 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(game.metadata.duration, len(game.frames))
 
+    def test_game_skip_frames(self):
+        game = Game(path('game'), skip_frames=True)
+
+        self.assertEqual(game.metadata, Metadata._parse({
+            'startAt': '2018-06-22T07:52:59Z',
+            'lastFrame': 5085,
+            'playedOn': 'dolphin',
+            'players': {
+                '0': {'characters': {InGameCharacter.MARTH: 5209}},
+                '1': {'characters': {InGameCharacter.FOX: 5209}}}}))
+        self.assertEqual(game.metadata, Metadata(
+            date=datetime.datetime(2018, 6, 22, 7, 52, 59, 0, datetime.timezone.utc),
+            duration=5209,
+            platform=Metadata.Platform.DOLPHIN,
+            players=(
+                Metadata.Player({InGameCharacter.MARTH: 5209}),
+                Metadata.Player({InGameCharacter.FOX: 5209}),
+                None, None)))
+
+        self.assertEqual(game.start, Start(
+            is_teams=False,
+            random_seed=3803194226,
+            slippi=Start.Slippi(Start.Slippi.Version(1,0,0,0)),
+            stage=Stage.YOSHIS_STORY,
+            players=(
+                Start.Player(character=CSSCharacter.MARTH, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(False, False)),
+                Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.CPU, stocks=4, costume=0, team=None, ucf=Start.Player.UCF(False, False)),
+                None, None)))
+
+        self.assertEqual(game.end, End(End.Method.CONCLUSIVE))
+
+        self.assertFalse(game.frames)
+
+
     def test_ics(self):
         game = self._game('ics')
         self.assertEqual(game.metadata.players[0].characters, {

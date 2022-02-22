@@ -17,7 +17,7 @@ class Game(Base):
     metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
     metadata_raw: Optional[dict] #: Raw JSON metadata, for debugging and forward-compatibility
 
-    def __init__(self, input: Union[BinaryIO, str, os.PathLike]):
+    def __init__(self, input: Union[BinaryIO, str, os.PathLike], skip_frames=False):
         """Parse a Slippi replay.
 
         :param input: replay file object or path"""
@@ -33,7 +33,7 @@ class Game(Base):
             ParseEvent.FRAME: self._add_frame,
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),
-            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)})
+            ParseEvent.METADATA_RAW: lambda x: setattr(self, 'metadata_raw', x)}, skip_frames)
 
     def _add_frame(self, f):
         idx = f.index - FIRST_FRAME_INDEX

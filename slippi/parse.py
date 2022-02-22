@@ -115,7 +115,7 @@ def _parse_event(event_stream, payload_sizes):
         raise ParseError(str(e), pos = base_pos + stream.tell() if base_pos else None)
 
 
-def _parse_events(stream, payload_sizes, total_size, handlers):
+def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
     current_frame = None
     bytes_read = 0
     event = None
@@ -133,6 +133,11 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             if handler:
                 handler(event)
         elif isinstance(event, Frame.Event):
+            if skip_frames: 
+                skip = total_size - bytes_read - payload_sizes[EventType.GAME_END.value] - 1
+                stream.seek(skip, os.SEEK_CUR)
+                bytes_read += skip
+                continue
             # Accumulate all events for a single frame into a single `Frame` object.
 
             # We can't use Frame Bookend events to detect end-of-frame,
@@ -167,8 +172,12 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             elif event.type is Frame.Event.Type.ITEM:
                 current_frame.items.append(Frame.Item._parse(event.data))
             elif event.type is Frame.Event.Type.START:
+                #print(event)
+                #print("total_size: {} bytes_read: {}".format(total_size, bytes_read))
                 current_frame.start = Frame.Start._parse(event.data)
             elif event.type is Frame.Event.Type.END:
+                #print(event)
+                #print("total_size: {} bytes_read: {}".format(total_size, bytes_read))
                 current_frame.end = Frame.End._parse(event.data)
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
@@ -180,7 +189,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
             handler(current_frame)
 
 
-def _parse(stream, handlers):
+def _parse(stream, handlers, skip_frames):
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
@@ -188,7 +197,7 @@ def _parse(stream, handlers):
     (length,) = unpack('l', stream)
 
     (bytes_read, payload_sizes) = _parse_event_payloads(stream)
-    _parse_events(stream, payload_sizes, length - bytes_read, handlers)
+    _parse_events(stream, payload_sizes, length - bytes_read, handlers, skip_frames)
 
     expect_bytes(b'U\x08metadata', stream)
 
@@ -205,11 +214,11 @@ def _parse(stream, handlers):
     expect_bytes(b'}', stream)
 
 
-def _parse_try(input: BinaryIO, handlers):
+def _parse_try(input: BinaryIO, handlers, skip_frames):
     """Wrap parsing exceptions with additional information."""
 
     try:
-        _parse(input, handlers)
+        _parse(input, handlers, skip_frames)
     except Exception as e:
         e = e if isinstance(e, ParseError) else ParseError(str(e))
 
@@ -226,20 +235,21 @@ def _parse_try(input: BinaryIO, handlers):
         raise e
 
 
-def _parse_open(input: os.PathLike, handlers) -> None:
+def _parse_open(input: os.PathLike, handlers, skip_frames) -> None:
     with open(input, 'rb') as f:
-        _parse_try(f, handlers)
+        _parse_try(f, handlers, skip_frames)
 
 
-def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]]) -> None:
+def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]], skip_frames: bool) -> None:
     """Parse a Slippi replay.
 
     :param input: replay file object or path
-    :param handlers: dict of parse event keys to handler functions. Each event will be passed to the corresponding handler as it occurs."""
+    :param handlers: dict of parse event keys to handler functions. Each event will be passed to the corresponding handler as it occurs.
+    :param skip_frames: whether to skip frames for parsing.""" 
 
     if isinstance(input, str):
-        _parse_open(pathlib.Path(input), handlers)
+        _parse_open(pathlib.Path(input), handlers, skip_frames)
     elif isinstance(input, os.PathLike):
-        _parse_open(input, handlers)
+        _parse_open(input, handlers, skip_frames)
     else:
-        _parse_try(input, handlers)
+        _parse_try(input, handlers, skip_frames)

@@ -172,12 +172,8 @@ def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
             elif event.type is Frame.Event.Type.ITEM:
                 current_frame.items.append(Frame.Item._parse(event.data))
             elif event.type is Frame.Event.Type.START:
-                #print(event)
-                #print("total_size: {} bytes_read: {}".format(total_size, bytes_read))
                 current_frame.start = Frame.Start._parse(event.data)
             elif event.type is Frame.Event.Type.END:
-                #print(event)
-                #print("total_size: {} bytes_read: {}".format(total_size, bytes_read))
                 current_frame.end = Frame.End._parse(event.data)
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
@@ -240,7 +236,7 @@ def _parse_open(input: os.PathLike, handlers, skip_frames) -> None:
         _parse_try(f, handlers, skip_frames)
 
 
-def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]], skip_frames: bool) -> None:
+def parse(input: Union[BinaryIO, str, os.PathLike], handlers: Dict[ParseEvent, Callable[..., None]], skip_frames = False) -> None:
     """Parse a Slippi replay.
 
     :param input: replay file object or path

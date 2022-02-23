@@ -78,6 +78,12 @@ py-slippi supports both event-based and object-based parsing. Object-based parsi
 
 Frame data is elided when you print games, but you can inspect a sample frame with e.g. :code:`game.frames[0]`.
 
+**Optionally skip frame parsing for a signficant speedup**::
+
+    >>> from slippi import Game
+    >>> Game('test/replays/game.slp', skip_frames=True)
+
+
 **Event-driven API**::
 
     >>> from slippi.parse import parse

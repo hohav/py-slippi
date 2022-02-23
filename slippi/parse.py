@@ -38,8 +38,9 @@ class ParseError(IOError):
 
 def _get_file_size(stream):
     (length,) = unpack('l', stream)
-    if length > 0:
+    if length > 0 or not stream.seekable():
         return length
+    # Support severed files via the stream size.
     position = stream.tell()
     size = stream.seek(0, os.SEEK_END)
     stream.seek(position, os.SEEK_SET)
@@ -200,7 +201,7 @@ def _parse(stream, handlers):
     # ugly, but it's what the official parser does so it should be OK.
     try:
         expect_bytes(b'{U\x03raw[$U#l', stream)
-    except:
+    except ExpectedBytesException:
         log.debug(f'missing expected bytes, halting parse.', exec_info=True)
         return
         
@@ -211,7 +212,7 @@ def _parse(stream, handlers):
 
     try:
         expect_bytes(b'U\x08metadata', stream)
-    except:
+    except ExpectedBytesException:
         log.debug(f'missing expected bytes, halting parse.', exec_info=True)
         return
 
@@ -227,7 +228,7 @@ def _parse(stream, handlers):
 
     try:
         expect_bytes(b'}', stream)
-    except:
+    except ExpectedBytesException:
         log.debug(f'missing expected bytes, halting parse.', exec_info=True)
         return
 

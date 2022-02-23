@@ -235,6 +235,43 @@ class TestGame(unittest.TestCase):
                 type=Item.PEACH_TURNIP,
                 velocity=Velocity(0.0, 0.0))})
 
+    def test_severed_frame(self):
+        game = self._game('severed_frame')
+        self.assertIsNone(game.metadata)
+        self.assertIsNone(game.end)
+        self.assertFalse(game.frames)
+
+        self.assertEqual(game.start, Start(
+            is_teams=True,
+            random_seed=1361504858,
+            slippi=Start.Slippi(Start.Slippi.Version(3,9,0,0)),
+            stage=Stage.GREAT_BAY,
+            players=(
+                Start.Player(character=CSSCharacter.SHEIK, type=Start.Player.Type.HUMAN, stocks=4, costume=1, team=Start.Player.Team.RED, ucf=Start.Player.UCF(True, True)),
+                Start.Player(character=CSSCharacter.ZELDA, type=Start.Player.Type.HUMAN, stocks=4, costume=1, team=Start.Player.Team.RED, ucf=Start.Player.UCF(True, True)),
+                Start.Player(character=CSSCharacter.NESS, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=Start.Player.Team.GREEN, ucf=Start.Player.UCF(True, True)),
+                Start.Player(character=CSSCharacter.ZELDA, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=Start.Player.Team.GREEN, ucf=Start.Player.UCF(True, True)),
+                )))
+
+    def test_severed_metadata(self):
+        game = self._game('severed_metadata')
+        self.assertIsNone(game.metadata)
+        self.assertIsNone(game.end)
+        self.assertEqual(game.start, Start(
+            is_frozen_ps=True,
+            is_pal=False,
+            is_teams=False,
+            random_seed=3180863434,
+            slippi=Start.Slippi(Start.Slippi.Version(3,9,0,0)),
+            stage=Stage.BATTLEFIELD,
+            players=(
+                Start.Player(character=CSSCharacter.FOX, type=Start.Player.Type.HUMAN, stocks=4, costume=2, team=None, ucf=Start.Player.UCF(True, True)),
+                None,
+                None,
+                Start.Player(character=CSSCharacter.FALCO, type=Start.Player.Type.HUMAN, stocks=4, costume=3, team=None, ucf=Start.Player.UCF(True, True)),
+                )))
+        self.assertEqual(2891, len(game.frames)) # some frames are parsed even if we don't have metadata
+
 
 class TestParse(unittest.TestCase):
     def test_parse(self):

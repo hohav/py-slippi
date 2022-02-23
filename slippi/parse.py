@@ -180,11 +180,23 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
                 else:
                     data._post = event.data
             elif event.type is Frame.Event.Type.ITEM:
-                current_frame.items.append(Frame.Item._parse(event.data))
+                try:
+                    current_frame.items.append(Frame.Item._parse(event.data))
+                except:
+                    log.debug(f'item parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             elif event.type is Frame.Event.Type.START:
-                current_frame.start = Frame.Start._parse(event.data)
+                try:
+                    current_frame.start = Frame.Start._parse(event.data)
+                except:
+                    log.debug(f'start parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             elif event.type is Frame.Event.Type.END:
-                current_frame.end = Frame.End._parse(event.data)
+                try:
+                    current_frame.end = Frame.End._parse(event.data)
+                except:
+                    log.debug(f'end parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
 

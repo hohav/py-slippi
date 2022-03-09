@@ -481,7 +481,7 @@ class Frame(Base):
             return cls(
                 type=try_enum(sid.Item, type),
                 state=state,
-                direction=Direction(direction),
+                direction=Direction(direction) if direction != 0 else None,
                 velocity=Velocity(x_vel, y_vel),
                 position=Position(x_pos, y_pos),
                 damage=damage,

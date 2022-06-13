@@ -20,6 +20,7 @@ class EventType(IntEnum):
     FRAME_START = 0x3A
     ITEM = 0x3B
     FRAME_END = 0x3C
+    GECKO_LIST = 0x3D
 
 
 class Start(Base):
@@ -218,6 +219,27 @@ class Start(Base):
                 OFF = 0
                 UCF = 1
                 ARDUINO = 2
+
+
+class Gecko(Base):
+    """Gecko code that should be applied to the replay."""
+
+    b: Gecko.b #: `added(3.3.0)` Bytes of gecko code
+
+    def __init__(self, b: bytes):
+        self.b = b
+
+
+    @classmethod
+    def _parse(cls, stream):
+        # does this need a try/except block?
+        b = stream.getvalue()
+        return cls(b)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.b is other.b
 
 
 class End(Base):

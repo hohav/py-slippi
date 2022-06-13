@@ -5,7 +5,7 @@ from typing import BinaryIO, Callable, Dict, Union
 
 import ubjson
 
-from .event import End, EventType, Frame, Start
+from .event import End, EventType, Frame, Start, Gecko
 from .log import log
 from .metadata import Metadata
 from .util import *
@@ -22,6 +22,7 @@ class ParseEvent(Enum):
     FRAME_START = 'frame_start' #: :py:class:`slippi.event.Frame.Start`:
     ITEM = 'item' #: :py:class:`slippi.event.Frame.Item`:
     FRAME_END = 'frame_end' #: :py:class:`slippi.event.Frame.End`:
+    GECKO = 'gecko' #: :py:class:`slippi.event.Gecko`:
 
 
 class ParseError(IOError):
@@ -101,6 +102,8 @@ def _parse_event(event_stream, payload_sizes):
                                 stream)
         elif event_type is EventType.GAME_END:
             event = End._parse(stream)
+        elif event_type is EventType.GECKO_LIST:
+            event = Gecko._parse(stream)
         else:
             event = None
         return (1 + size, event)
@@ -126,6 +129,10 @@ def _parse_events(stream, payload_sizes, total_size, handlers):
         bytes_read += b
         if isinstance(event, Start):
             handler = handlers.get(ParseEvent.START)
+            if handler:
+                handler(event)
+        elif isinstance(event, Gecko):
+            handler = handlers.get(ParseEvent.GECKO)
             if handler:
                 handler(event)
         elif isinstance(event, End):

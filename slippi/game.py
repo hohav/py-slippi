@@ -2,7 +2,7 @@ import io, os
 from logging import debug
 from typing import BinaryIO, List, Optional, Union
 
-from .event import FIRST_FRAME_INDEX, End, Frame, Start
+from .event import FIRST_FRAME_INDEX, End, Frame, Start, Gecko
 from .metadata import Metadata
 from .parse import ParseEvent, parse
 from .util import *
@@ -12,6 +12,7 @@ class Game(Base):
     """Replay data from a game of Super Smash Brothers Melee."""
 
     start: Optional[Start] #: Information about the start of the game
+    gecko: Optional[Gecko] #: Bytes of gecko code (if there is one)
     frames: List[Frame] #: Every frame of the game, indexed by frame number
     end: Optional[End] #: Information about the end of the game
     metadata: Optional[Metadata] #: Miscellaneous data not directly provided by Melee
@@ -23,6 +24,7 @@ class Game(Base):
         :param input: replay file object or path"""
 
         self.start = None
+        self.gecko = None
         self.frames = []
         self.end = None
         self.metadata = None
@@ -30,6 +32,7 @@ class Game(Base):
 
         parse(input, {
             ParseEvent.START: lambda x: setattr(self, 'start', x),
+            ParseEvent.GECKO: lambda x: setattr(self, 'gecko', x),
             ParseEvent.FRAME: self._add_frame,
             ParseEvent.END: lambda x: setattr(self, 'end', x),
             ParseEvent.METADATA: lambda x: setattr(self, 'metadata', x),

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union, List
 
 from . import id as sid
 from .util import *
@@ -225,10 +225,12 @@ class End(Base):
 
     method: End.Method #: `changed(2.0.0)` How the game ended
     lras_initiator: Optional[int] #: `added(2.0.0)` Index of player that LRAS'd, if any
+    player_placements: Optional[List[int]] #: `added (3.13.0)` 0-indexed placement positions. -1 if player not in game
 
-    def __init__(self, method: End.Method, lras_initiator: Optional[int] = None):
+    def __init__(self, method: End.Method, lras_initiator: Optional[int], player_placements: Optional[List[int]] = None):
         self.method = method
         self.lras_initiator = lras_initiator
+        self.player_placements = player_placements
 
     @classmethod
     def _parse(cls, stream):
@@ -238,7 +240,14 @@ class End(Base):
             lras_initiator = lras if lras < len(PORTS) else None
         except EOFError:
             lras_initiator = None
-        return cls(cls.Method(method), lras_initiator)
+        
+        try: # v3.13.0
+            (p1_placement, p2_placement, p3_placement, p4_placement) = unpack('bbbb', stream)
+            player_placements = [p1_placement, p2_placement, p3_placement, p4_placement]
+        except EOFError:
+            player_placements = None
+        return cls(cls.Method(method), lras_initiator, player_placements)
+
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

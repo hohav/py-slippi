@@ -227,7 +227,7 @@ class End(Base):
     lras_initiator: Optional[int] #: `added(2.0.0)` Index of player that LRAS'd, if any
     player_placements: Optional[List[int]] #: `added (3.13.0)` 0-indexed placement positions. -1 if player not in game
 
-    def __init__(self, method: End.Method, lras_initiator: Optional[int], player_placements: Optional[List[int]] = None):
+    def __init__(self, method: End.Method, lras_initiator: Optional[int] = None, player_placements: Optional[List[int]] = None):
         self.method = method
         self.lras_initiator = lras_initiator
         self.player_placements = player_placements

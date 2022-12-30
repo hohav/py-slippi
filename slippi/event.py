@@ -32,8 +32,10 @@ class Start(Base):
     stage: sid.Stage #: Stage on which this game was played
     is_pal: Optional[bool] #: `added(1.5.0)` True if this was a PAL version of Melee
     is_frozen_ps: Optional[bool] #: `added(2.0.0)` True if frozen Pokemon Stadium was enabled
+    match_id: Optional[str] #: `added(3.14.0)` Mode (ranked/unranked) and time the match started
+    game_number: Optional[int] #: `added(3.14.0)` The game number for consecutive games
 
-    def __init__(self, is_teams: bool, players: Tuple[Optional[Start.Player]], random_seed: int, slippi: Start.Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None):
+    def __init__(self, is_teams: bool, players: Tuple[Optional[Start.Player]], random_seed: int, slippi: Start.Slippi, stage: sid.Stage, is_pal: Optional[bool] = None, is_frozen_ps: Optional[bool] = None, match_id: Optional[str] = None, game_number: Optional[int] = None,):
         self.is_teams = is_teams
         self.players = players
         self.random_seed = random_seed
@@ -41,6 +43,8 @@ class Start(Base):
         self.stage = stage
         self.is_pal = is_pal
         self.is_frozen_ps = is_frozen_ps
+        self.match_id = match_id
+        self.game_number = game_number
 
     @classmethod
     def _parse(cls, stream):
@@ -105,6 +109,20 @@ class Start(Base):
         try: (is_frozen_ps,) = unpack('?', stream)
         except EOFError: is_frozen_ps = None
 
+        # v3.14.0
+        stream.read(283)
+
+        try: 
+            (match_id,) = unpack('50s', stream)
+            match_id = str(match_id.decode('utf-8')).rstrip('\x00')
+            print(match_id)
+            print(str(match_id))
+        except EOFError: match_id = None
+
+        stream.read(1)
+        try: (game_number,) = unpack('i', stream)
+        except EOFError: game_number = None
+
         return cls(
             is_teams=is_teams,
             players=tuple(players),
@@ -112,7 +130,9 @@ class Start(Base):
             slippi=slippi_,
             stage=stage,
             is_pal=is_pal,
-            is_frozen_ps=is_frozen_ps)
+            is_frozen_ps=is_frozen_ps,
+            match_id=match_id,
+            game_number=game_number,)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):

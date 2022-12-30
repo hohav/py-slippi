@@ -115,8 +115,6 @@ class Start(Base):
         try: 
             (match_id,) = unpack('50s', stream)
             match_id = str(match_id.decode('utf-8')).rstrip('\x00')
-            print(match_id)
-            print(str(match_id))
         except EOFError: match_id = None
 
         stream.read(1)

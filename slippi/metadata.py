@@ -18,7 +18,7 @@ class Metadata(Base):
     players: Tuple[Optional[Metadata.Player]] #: Player metadata by port (port 1 is at index 0; empty ports will contain None)
     console_name: Optional[str] #: Name of the console the game was played on, if any
 
-    def __init__(self, date: datetime, duration: int, platform: Metadata.Platform, players: Tuple[Optional[Metadata.Player]], console_name: Optional[str] = None,):
+    def __init__(self, date: datetime, duration: int, platform: Metadata.Platform, players: Tuple[Optional[Metadata.Player]], console_name: Optional[str] = None):
         self.date = date
         self.duration = duration
         self.platform = platform

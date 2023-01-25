@@ -128,7 +128,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
             handler = handlers.get(ParseEvent.START)
             if handler:
                 handler(event)
-            if skip_frames: 
+            if skip_frames and total_size != 0: 
                 skip = total_size - bytes_read - payload_sizes[EventType.GAME_END.value] - 1
                 stream.seek(skip, os.SEEK_CUR)
                 bytes_read += skip
@@ -137,7 +137,7 @@ def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
             handler = handlers.get(ParseEvent.END)
             if handler:
                 handler(event)
-        elif isinstance(event, Frame.Event):
+        elif isinstance(event, Frame.Event) and not skip_frames:
             # Accumulate all events for a single frame into a single `Frame` object.
 
             # We can't use Frame Bookend events to detect end-of-frame,
@@ -193,7 +193,10 @@ def _parse(stream, handlers, skip_frames):
     (length,) = unpack('l', stream)
 
     (bytes_read, payload_sizes) = _parse_event_payloads(stream)
-    _parse_events(stream, payload_sizes, length - bytes_read, handlers, skip_frames)
+    if length != 0:
+        length -= bytes_read
+
+    _parse_events(stream, payload_sizes, length, handlers, skip_frames)
 
     expect_bytes(b'U\x08metadata', stream)
 

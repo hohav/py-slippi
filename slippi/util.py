@@ -6,6 +6,9 @@ from .log import log
 
 PORTS = range(4)
 
+class ExpectedBytesException(Exception):
+    pass
+
 
 def _indent(s):
     return re.sub(r'^', '    ', s, flags=re.MULTILINE)
@@ -52,7 +55,7 @@ def unpack(fmt, stream):
 def expect_bytes(expected_bytes, stream):
     read_bytes = stream.read(len(expected_bytes))
     if read_bytes != expected_bytes:
-        raise Exception(f'expected {expected_bytes}, but got: {read_bytes}')
+        raise ExpectedBytesException(f'expected {expected_bytes}, but got: {read_bytes}')
 
 
 class Base:

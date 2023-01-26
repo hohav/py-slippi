@@ -36,6 +36,16 @@ class ParseError(IOError):
             '@0x%x' % self.pos if self.pos else '?',
             super().__str__())
 
+def _get_file_size(stream):
+    (length,) = unpack('l', stream)
+    if length > 0 or not stream.seekable():
+        return length
+    # Support severed files via the stream size.
+    position = stream.tell()
+    size = stream.seek(0, os.SEEK_END)
+    stream.seek(position, os.SEEK_SET)
+    return size - position
+
 
 def _parse_event_payloads(stream):
     (code, this_size) = unpack('BB', stream)
@@ -122,7 +132,12 @@ def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
 
     # `total_size` will be zero for in-progress replays
     while (total_size == 0 or bytes_read < total_size) and event != ParseEvent.END:
-        (b, event) = _parse_event(stream, payload_sizes)
+        try:
+            (b, event) = _parse_event(stream, payload_sizes)
+        except:
+            log.debug(f'parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+            return
+
         bytes_read += b
         if isinstance(event, Start):
             handler = handlers.get(ParseEvent.START)
@@ -170,11 +185,23 @@ def _parse_events(stream, payload_sizes, total_size, handlers, skip_frames):
                 else:
                     data._post = event.data
             elif event.type is Frame.Event.Type.ITEM:
-                current_frame.items.append(Frame.Item._parse(event.data))
+                try:
+                    current_frame.items.append(Frame.Item._parse(event.data))
+                except:
+                    log.debug(f'item parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             elif event.type is Frame.Event.Type.START:
-                current_frame.start = Frame.Start._parse(event.data)
+                try:
+                    current_frame.start = Frame.Start._parse(event.data)
+                except:
+                    log.debug(f'start parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             elif event.type is Frame.Event.Type.END:
-                current_frame.end = Frame.End._parse(event.data)
+                try:
+                    current_frame.end = Frame.End._parse(event.data)
+                except:
+                    log.debug(f'end parse error, halting event parsing (possibly a severed replay)', exec_info=True)
+                    return
             else:
                 raise Exception('unknown frame data type: %s' % event.data)
 
@@ -189,13 +216,22 @@ def _parse(stream, handlers, skip_frames):
     # For efficiency, don't send the whole file through ubjson.
     # Instead, assume `raw` is the first element. This is brittle and
     # ugly, but it's what the official parser does so it should be OK.
-    expect_bytes(b'{U\x03raw[$U#l', stream)
-    (length,) = unpack('l', stream)
+    try:
+        expect_bytes(b'{U\x03raw[$U#l', stream)
+    except ExpectedBytesException:
+        log.debug(f'missing expected bytes, halting parse.', exec_info=True)
+        return
+        
+    length = _get_file_size(stream)
 
     (bytes_read, payload_sizes) = _parse_event_payloads(stream)
     _parse_events(stream, payload_sizes, length - bytes_read, handlers, skip_frames)
 
-    expect_bytes(b'U\x08metadata', stream)
+    try:
+        expect_bytes(b'U\x08metadata', stream)
+    except ExpectedBytesException:
+        log.debug(f'missing expected bytes, halting parse.', exec_info=True)
+        return
 
     json = ubjson.load(stream)
     raw_handler = handlers.get(ParseEvent.METADATA_RAW)
@@ -207,7 +243,11 @@ def _parse(stream, handlers, skip_frames):
     if handler:
         handler(metadata)
 
-    expect_bytes(b'}', stream)
+    try:
+        expect_bytes(b'}', stream)
+    except ExpectedBytesException:
+        log.debug(f'missing expected bytes, halting parse.', exec_info=True)
+        return
 
 
 def _parse_try(input: BinaryIO, handlers, skip_frames):

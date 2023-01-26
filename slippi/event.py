@@ -168,7 +168,7 @@ class Start(Base):
         ucf: Start.Player.UCF #: UCF feature toggles
         tag: Optional[str] #: Name tag
 
-        def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Start.Player.UCF = None, tag: Optional[str] = None):
+        def __init__(self, character: sid.CSSCharacter, type: Start.Player.Type, stocks: int, costume: int, team: Optional[Start.Player.Team], ucf: Optional[Start.Player.UCF] = None, tag: Optional[str] = None):
             self.character = character
             self.type = type
             self.stocks = stocks
@@ -198,7 +198,7 @@ class Start(Base):
             dash_back: Start.Player.UCF.DashBack #: UCF dashback status
             shield_drop: Start.Player.UCF.ShieldDrop #: UCF shield drop status
 
-            def __init__(self, dash_back: Start.Player.UCF.DashBack = None, shield_drop: Start.Player.UCF.ShieldDrop = None):
+            def __init__(self, dash_back: Optional[Start.Player.UCF.DashBack] = None, shield_drop: Optional[Start.Player.UCF.ShieldDrop] = None):
                 self.dash_back = dash_back or self.DashBack.OFF
                 self.shield_drop = shield_drop or self.ShieldDrop.OFF
 

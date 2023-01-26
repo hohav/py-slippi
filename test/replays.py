@@ -112,6 +112,17 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(game.metadata.duration, len(game.frames))
 
+    def test_streaming_game(self):
+        game = Game(path('game'))
+        streaming_game = Game(path('streaming_game'))
+        streaming_game_skip = Game(path('streaming_game'), skip_frames=True)
+
+        self.assertEqual(game.start, streaming_game.start)
+        self.assertEqual(game.end, streaming_game.end)
+        self.assertEqual(game.metadata, streaming_game.metadata)
+
+        self.assertFalse(streaming_game_skip.frames)
+
     def test_game_skip_frames(self):
         game = Game(path('game'), skip_frames=True)
 

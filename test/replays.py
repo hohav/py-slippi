@@ -228,6 +228,13 @@ class TestGame(unittest.TestCase):
         game = self._game('v2.0')
         self.assertEqual(game.start.slippi.version, Start.Slippi.Version(2,0,1))
 
+    def test_v3_14_0(self):
+        game = self._game('v3.14.0')
+        self.assertEqual(game.start.slippi.version, Start.Slippi.Version(3,14,0))
+        self.assertEqual(game.start.match_id, 'mode.unranked-2022-12-27T01:04:44.19-0')
+        self.assertEqual(game.start.game_number, 4)
+
+
     def test_unknown_event(self):
         with self.assertLogs(log, 'INFO') as log_context:
             game = self._game('unknown_event')

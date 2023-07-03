@@ -231,7 +231,7 @@ class TestGame(unittest.TestCase):
     def test_unknown_event(self):
         with self.assertLogs(log, 'INFO') as log_context:
             game = self._game('unknown_event')
-        self.assertEqual(log_context.output, ['INFO:root:ignoring unknown event type: 0xff'])
+        self.assertEqual(log_context.output, ['INFO:slippi.log:ignoring unknown event type: 0xff'])
 
     def test_items(self):
         game = self._game('items')

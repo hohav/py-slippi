@@ -1,3 +1,9 @@
+====================================
+⚠️ py-slippi is no longer maintained 
+====================================
+I recommend `peppi-py <https://github.com/hohav/peppi-py>`_ instead.
+
+
 =========
 py-slippi
 =========
